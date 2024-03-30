@@ -3,6 +3,7 @@
 ulimit -c unlimited
 
 fairseq-train \
+--dataset-root ~/data \
 --user-dir ../graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \

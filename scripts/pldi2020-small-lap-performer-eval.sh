@@ -4,6 +4,7 @@ ulimit -c unlimited
 
 python ../graph_coder/evaluate/evaluate.py --split test \
                            --metric auc \
+                           --dataset-root ~/data \
                            --user-dir ../graph_coder \
                            --num-workers 0 \
                            --ddp-backend=legacy_ddp \
