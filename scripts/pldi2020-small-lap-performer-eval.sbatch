@@ -27,11 +27,9 @@
 #SBATCH --time=7-0:0
 
 # Load modules
-cd scripts
-
-chmod +x ./prepare.sh
-source ./prepare.sh
+chmod +x ./scripts/prepare.sh
+source ./scripts/prepare.sh
 
 # Train model
-chmod +x ./pldi2020-small-lap-performer-eval.sh
-source ./pldi2020-small-lap-performer-eval.sh
+chmod +x ./scripts/pldi2020-small-lap-performer-eval.sh
+source ./scripts/pldi2020-small-lap-performer-eval.sh

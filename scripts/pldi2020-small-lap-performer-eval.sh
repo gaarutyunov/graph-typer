@@ -2,15 +2,15 @@
 
 ulimit -c unlimited
 
-python ../graph_coder/evaluate/evaluate.py --split test \
+python graph_coder/evaluate/evaluate.py --split test \
                            --metric auc \
                            --dataset-root ~/data \
-                           --user-dir ../graph_coder \
+                           --user-dir graph_coder \
                            --num-workers 0 \
                            --ddp-backend=legacy_ddp \
                            --dataset-name pldi2020_small \
                            --task node_classification \
-                           --user-data-dir ../graph_coder/data \
+                           --user-data-dir graph_coder/data \
                            --criterion binary_log_loss \
                            --arch graph_coder_base \
                            --lap-node-id \
@@ -28,5 +28,5 @@ python ../graph_coder/evaluate/evaluate.py --split test \
                            --lr 2e-4 --end-learning-rate 1e-9 \
                            --batch-size 1 \
                            --data-buffer-size 20 \
-                           --tensorboard-logdir ./tb/pldi2020_small-gc-lap-performer \
-                           --checkpoint-path ckpts/pldi2020_small-gc-lap-performer/checkpoint_best.pt
+                           --tensorboard-logdir ./scripts/tb/pldi2020_small-gc-lap-performer \
+                           --checkpoint-path ./scripts/ckpts/pldi2020_small-gc-lap-performer/checkpoint_best.pt
