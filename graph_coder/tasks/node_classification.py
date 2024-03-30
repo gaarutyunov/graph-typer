@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class NodeClassificationConfig(GraphPredictionConfig):
     dataset_root: str = field(
-        default="~/Projects/hse/data",
+        default="~/data",
         metadata={"help": "Dataset root folder"},
     )
 
