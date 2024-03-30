@@ -13,7 +13,6 @@ from .collator import collator
 
 from typing import Optional, Union
 from torch_geometric.data import Data as PYGDataset
-from dgl.data import DGLDataset
 from .ogb_datasets import OGBDatasetLookupTable
 
 
@@ -66,7 +65,7 @@ class TargetDataset(FairseqDataset):
 class TokenGTDataset:
     def __init__(
             self,
-            dataset: Optional[Union[PYGDataset, DGLDataset]] = None,
+            dataset: Optional[Union[PYGDataset]] = None,
             dataset_spec: Optional[str] = None,
             dataset_source: Optional[str] = None,
             seed: int = 0,
