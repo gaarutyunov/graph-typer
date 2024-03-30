@@ -27,6 +27,8 @@ class TypePredictionEvaluator:
         self.__num_samples += 1
 
         predicted = max(predicted_dist, key=lambda x: predicted_dist[x])
+        assert predicted is not None, "predicted cannot be none"
+        assert ground_truth is not None, "ground truth cannot be none"
 
         # Exact Match
         is_correct = self.__type_lattice.are_same_type(ground_truth, predicted)
