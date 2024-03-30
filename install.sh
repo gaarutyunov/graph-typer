@@ -1,8 +1,5 @@
 #!/usr/bin/env bash
 
-# install requirements
-pip install torch==1.11.0+cu113 torchaudio -f https://download.pytorch.org/whl/cu113/torch_stable.html
-# install torchaudio, thus fairseq installation will not install newest torchaudio and torch(would replace torch-1.11.0)
 pip install lmdb
 pip install torch-scatter==2.0.9 -f https://pytorch-geometric.com/whl/torch-1.11.0+cu113.html
 pip install torch-sparse==0.6.13 -f https://pytorch-geometric.com/whl/torch-1.11.0+cu113.html
