@@ -29,7 +29,8 @@
 # Load modules
 cd scripts
 
-module restore default
+chmod +x ./prepare.sh
+source ./prepare.sh
 
 # Train model
 chmod +x ./pldi2020-small-lap-performer.sh

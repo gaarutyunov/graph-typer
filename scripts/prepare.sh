@@ -18,3 +18,4 @@
 # Load modules and activate virtual environment
 
 module restore default
+export LOG_LEVEL=debug
