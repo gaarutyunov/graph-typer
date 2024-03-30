@@ -44,6 +44,22 @@ class Annotation(NamedTuple):
     predicted_annotation_logprob_dist: Dict[str, float]
 
 
+IGNORED_TYPES = {'typing.Any', 'Any', '', 'typing.NoReturn', 'NoReturn', 'nothing', 'None', None,
+                 # Generic Type Params
+                 'T', '_T', '_T0', '_T1', '_T2', '_T3', '_T4', '_T5', '_T6', '_T7'}
+
+
+def ignore_type_annotation(name: str) -> bool:
+    """A filter of types that should be ignored when learning or predicting"""
+    if name in IGNORED_TYPES:
+        return True
+    if '%UNKNOWN%' in name:
+        return True
+    if name.startswith('_'):
+        return True
+    return False
+
+
 def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     cfg = convert_namespace_to_omegaconf(args)
     np.random.seed(cfg.common.seed)
@@ -131,6 +147,8 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
 
             # This is also classification-specific due to class_id_to_class
             for i, (node_idx, node_type, var_name, annotation_location, annotation_type) in enumerate(original_annotations):
+                if ignore_type_annotation(annotation.original_annotation):
+                    continue
                 annotation = Annotation(
                     provenance=provenance,
                     node_id=node_idx,
