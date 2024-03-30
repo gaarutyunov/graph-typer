@@ -147,7 +147,7 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
 
             # This is also classification-specific due to class_id_to_class
             for i, (node_idx, node_type, var_name, annotation_location, annotation_type) in enumerate(original_annotations):
-                if ignore_type_annotation(annotation.original_annotation):
+                if ignore_type_annotation(annotation):
                     continue
                 annotation = Annotation(
                     provenance=provenance,
