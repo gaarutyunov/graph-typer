@@ -66,7 +66,7 @@ class NodeClassificationTask(GraphPredictionTask):
 
         assert split in ["train", "valid", "test"]
 
-        batched_data = self.dataset_initializer(self.cfg)
+        batched_data = self.dataset_initializer(self.cfg, split)
 
         batched_data = BatchedDataDataset(
             batched_data,
