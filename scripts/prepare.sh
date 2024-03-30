@@ -18,4 +18,3 @@
 # Load modules and activate virtual environment
 
 module restore default
-source ../venv/bin/activate

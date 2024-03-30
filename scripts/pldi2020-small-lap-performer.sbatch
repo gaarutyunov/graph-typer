@@ -26,11 +26,10 @@
 #SBATCH --cpus-per-gpu=1
 #SBATCH --time=7-0:0
 
-# Load modules and activate virtual environment
+# Load modules
 cd scripts
 
-chmod +x ./prepare.sh
-source ./prepare.sh
+module restore default
 
 # Train model
 chmod +x ./pldi2020-small-lap-performer.sh
