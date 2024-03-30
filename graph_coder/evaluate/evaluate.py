@@ -115,7 +115,7 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
-            raw_sample = dataset.defn["net_input.batched_data"].dataset.dataset.get_sample(sample["net_input"]["batched_data"]["idx"][0].item())
+            raw_sample = dataset.defn["net_input.batched_data"].dataset.get_sample(sample["net_input"]["batched_data"]["idx"][0].item())
             if len(raw_sample['supernodes']) == 0:
                 continue
             provenance = raw_sample.get("Provenance", "?")
