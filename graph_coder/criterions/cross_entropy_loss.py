@@ -19,6 +19,7 @@ class CrossEntropyLoss(FairseqCriterion):
     def __init__(self, task):
         super().__init__(task)
         self.weights = RichPath.create(os.path.expanduser(task.cfg.weights_path)).read_by_file_suffix()
+        self.weights.to("cuda:0")
 
     def forward(self, model, sample, perturb=None, reduce=True):
         """Compute the loss for the given sample.
@@ -37,8 +38,6 @@ class CrossEntropyLoss(FairseqCriterion):
 
         logits = model(**sample["net_input"], perturb=perturb)
         targets = model.get_targets(sample, [logits])
-        if self.weights.device != logits.device:
-            self.weights.to(logits.device)
 
         loss = F.cross_entropy(
             logits[padded_node_mask],
