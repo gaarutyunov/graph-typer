@@ -33,5 +33,4 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --metadata-path ~/data/tensorised-data/train/metadata.pkl.gz \
                            --type-lattice-path ~/data/_type_lattice.json.gz \
                            --alias-metadata-path ~/data/typingRules.json \
-                           --weights-path ~/data/weights.pkl.gz \
-                           --fp16
+                           --weights-path ~/data/weights.pkl.gz
