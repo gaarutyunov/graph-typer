@@ -24,7 +24,7 @@ class NodeClassificationConfig(GraphPredictionConfig):
     )
 
     weights_path: str = field(
-        default="processed-data/train/weights.pkl.gz",
+        default="~/Projects/hse/data/processed-data/train/weights.pkl.gz",
         metadata={"help": "Weights path relative to the dataset root"},
     )
 

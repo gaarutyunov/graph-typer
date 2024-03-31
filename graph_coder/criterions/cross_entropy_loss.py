@@ -18,7 +18,7 @@ class CrossEntropyLoss(FairseqCriterion):
 
     def __init__(self, task):
         super().__init__(task)
-        self.weights = RichPath.create(os.path.expanduser(os.path.join(task.cfg.dataset_root, task.cfg.weights_path))).read_by_file_suffix()
+        self.weights = RichPath.create(os.path.expanduser(task.cfg.weights_path)).read_by_file_suffix()
 
     def forward(self, model, sample, perturb=None, reduce=True):
         """Compute the loss for the given sample.

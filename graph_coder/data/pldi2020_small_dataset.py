@@ -1,4 +1,5 @@
 import os
+import pathlib
 import subprocess
 from functools import partial
 from typing import Union, List, Tuple, Optional, Callable, Literal, Dict, Any
@@ -84,7 +85,7 @@ class PLDI2020SmallDataset(Dataset):
 
     @property
     def indexes_path(self):
-        return os.path.join(self.processed_dir, self.split, "indexes.pkl.gz")
+        return os.path.join(self.processed_dir, "indexes.pkl.gz")
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
@@ -163,11 +164,16 @@ class PLDI2020SmallDataset(Dataset):
 
 
 if __name__ == "__main__":
-    for split in ["train", "valid"]:
-        dataset = PLDI2020SmallDataset(
-            os.path.expanduser("~/Projects/hse/data"),
-            pre_filter=partial(filter_data, max_nodes=512, max_edges=2048),
-            split=split
-        )
-        print("split", split, "length:", len(dataset))
-        print("first graph:", dataset[0])
+    dataset = PLDI2020SmallDataset(
+        os.path.expanduser("~/Projects/hse/data"),
+        pre_filter=partial(filter_data, max_nodes=512, max_edges=2048),
+        split="train"
+    )
+    counter = torch.zeros(dataset.num_classes)
+    for data in dataset:
+        i, c = torch.unique(data.y, return_counts=True)
+        counter[i] += c
+    weights = len(dataset) / (dataset.num_classes * counter)
+    weights_path = RichPath.create(dataset.weights_path)
+    weights_path.save_as_compressed_file(weights)
+
