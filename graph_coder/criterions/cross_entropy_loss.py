@@ -38,7 +38,7 @@ class CrossEntropyLoss(FairseqCriterion):
         logits = model(**sample["net_input"], perturb=perturb)
         targets = model.get_targets(sample, [logits])
         if self.weights.device != logits.device:
-            self.weights = self.weights.to(logits.device)
+            self.weights = self.weights.to(logits.device, dtype=logits.dtype)
 
         loss = F.cross_entropy(
             logits[padded_node_mask],
