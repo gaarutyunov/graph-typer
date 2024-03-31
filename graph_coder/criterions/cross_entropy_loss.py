@@ -19,6 +19,8 @@ class CrossEntropyLoss(FairseqCriterion):
     def __init__(self, task):
         super().__init__(task)
         self.weights = RichPath.create(os.path.expanduser(task.cfg.weights_path)).read_by_file_suffix()
+        empty = torch.empty(1, requires_grad=False)
+        self.weights.to(empty.device)
 
     def forward(self, model, sample, perturb=None, reduce=True):
         """Compute the loss for the given sample.
