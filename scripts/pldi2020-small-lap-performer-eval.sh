@@ -11,7 +11,7 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --dataset-name pldi2020_small \
                            --task node_classification \
                            --user-data-dir graph_coder/data \
-                           --criterion binary_log_loss \
+                           --criterion cross_entropy_loss \
                            --arch graph_coder_base \
                            --lap-node-id \
                            --lap-node-id-k 16 \
@@ -32,4 +32,5 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --checkpoint-path ./scripts/ckpts/pldi2020_small-gc-lap-performer/checkpoint_best.pt \
                            --metadata-path ~/data/tensorised-data/train/metadata.pkl.gz \
                            --type-lattice-path ~/data/_type_lattice.json.gz \
-                           --alias-metadata-path ~/data/typingRules.json
+                           --alias-metadata-path ~/data/typingRules.json \
+                           --fp16

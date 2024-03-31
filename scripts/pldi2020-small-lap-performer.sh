@@ -10,7 +10,7 @@ fairseq-train \
 --dataset-name pldi2020_small \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
---criterion binary_log_loss \
+--criterion cross_entropy_loss \
 --arch graph_coder_base \
 --lap-node-id \
 --lap-node-id-k 16 \
@@ -29,4 +29,5 @@ fairseq-train \
 --data-buffer-size 20 \
 --save-dir ./ckpts/pldi2020_small-gc-lap-performer \
 --tensorboard-logdir ./tb/pldi2020_small-gc-lap-performer \
---no-epoch-checkpoints
+--no-epoch-checkpoints \
+--fp16

@@ -3,6 +3,7 @@ import subprocess
 from functools import partial
 from typing import Union, List, Tuple, Optional, Callable, Literal, Dict, Any
 
+import torch
 from dpu_utils.utils import RichPath
 from torch_geometric.data import Dataset, Data, download_url
 from tqdm.auto import tqdm
@@ -26,7 +27,8 @@ def pldi2020_small(cfg, split: Literal["train", "test", "valid"] = "train"):
     return PLDI2020SmallDataset(
         os.path.expanduser(cfg.dataset_root),
         pre_filter=partial(filter_data, max_nodes=cfg.max_nodes, max_edges=cfg.max_edges),
-        split=split
+        split=split,
+        num_classes=cfg.num_classes
     )
 
 
@@ -36,11 +38,17 @@ class PLDI2020SmallDataset(Dataset):
                  transform: Optional[Callable] = None,
                  pre_transform: Optional[Callable] = None,
                  pre_filter: Optional[Callable] = None,
-                 split: Literal["train", "test", "valid"] = "train"):
+                 split: Literal["train", "test", "valid"] = "train",
+                 num_classes: int = 100):
+        if isinstance(root, str):
+            root = os.path.expanduser(os.path.normpath(root))
+
+        self.root = root
         self.split = split
+        self.num_classes = num_classes
         self.__len = 291
         self.__idx = range(self.__len)
-        self.indexes_path = os.path.join(root, 'processed-data', split, "indexes.pkl.gz")
+        self._weights = None
         self.load_meta()
         super().__init__(root, transform, pre_transform, pre_filter)
 
@@ -71,6 +79,14 @@ class PLDI2020SmallDataset(Dataset):
         return os.path.join(self.root, 'processed-data', self.split)
 
     @property
+    def weights_path(self):
+        return os.path.join(self.processed_dir, "weights.pkl.gz")
+
+    @property
+    def indexes_path(self):
+        return os.path.join(self.processed_dir, self.split, "indexes.pkl.gz")
+
+    @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
         return ["chunk_0000.pkl.gz"]
 
@@ -78,9 +94,17 @@ class PLDI2020SmallDataset(Dataset):
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
         return [f"data_{i:d}.pkl.gz" for i in self.__idx]
 
+    @property
+    def weights(self):
+        if self._weights is None:
+            weights_path = RichPath.create(self.weights_path)
+            self._weights = weights_path.read_by_file_suffix()
+        return self._weights
+
     def process(self):
         idx = 0
         indexes = []
+        counter = torch.zeros(self.num_classes)
 
         path = RichPath.create(self.raw_dir)
         paths = path.get_filtered_files_in_dir("chunk_*")
@@ -108,6 +132,8 @@ class PLDI2020SmallDataset(Dataset):
                         data_to_sample(d, mapping, sample["raw_data"]["supernodes"], sample.get("Provenance", "?"))
                     )
                     indexes.append(idx)
+                    targets, counts = torch.unique(d.y, return_counts=True)
+                    counter[targets] += counts
 
                 if should_split:
                     for graph, mapping in split_graph(data, max_nodes, max_edges):
@@ -120,6 +146,9 @@ class PLDI2020SmallDataset(Dataset):
         indexes_path = RichPath.create(self.indexes_path)
         indexes_path.save_as_compressed_file(set(indexes))
         self.load_meta()
+        weights = len(self) / (self.num_classes * counter)
+        weights_path = RichPath.create(self.weights_path)
+        weights_path.save_as_compressed_file(weights)
 
     def len(self) -> int:
         return self.__len

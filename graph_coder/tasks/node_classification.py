@@ -23,6 +23,11 @@ class NodeClassificationConfig(GraphPredictionConfig):
         metadata={"help": "Dataset root folder"},
     )
 
+    weights_path: str = field(
+        default="processed-data/train/weights.pkl.gz",
+        metadata={"help": "Weights path relative to the dataset root"},
+    )
+
     max_nodes: int = field(
         default=10000,
         metadata={"help": "max nodes per graph"},
