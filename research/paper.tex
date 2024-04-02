@@ -1,0 +1,170 @@
+\documentclass[sigplan,natbib=false]{acmart}
+\RequirePackage[
+    datamodel=acmdatamodel,
+    style=acmauthoryear,backend=biber
+]{biblatex}
+\usepackage{amsfonts}
+\usepackage{amsmath}
+
+\addbibresource{paper.bib}
+
+\begin{document}
+
+\author{G.A. Arutyunov}
+\orcid{00000-0003-4537-4332}
+\email{gaarutyunov@edu.hse.ru}
+\affiliation{%
+    \institution{HSE University}
+    \streetaddress{20, Myasnitskaya st., Moscow}
+    \city{Moscow}
+    \country{Russia}
+    \postcode{101000}}
+\author{S.M. Avdoshin}
+\orcid{0000-0001-8473-8077}
+\email{savdoshin@hse.ru}
+\affiliation{%
+    \institution{HSE University}
+    \streetaddress{20, Myasnitskaya st., Moscow}
+    \city{Moscow}
+    \country{Russia}
+    \postcode{101000}}
+
+\title[GraphCoder]{GraphCoder: Transformer Pre-trained on Code Represented as Graph}
+
+\begin{abstract}
+    Although software development is mostly a creative process, there are many scrutiny tasks.
+    As in other industries there is a trend for automation of routine work.
+    In many cases machine learning and neural networks have become a useful assistant in that matter.
+    Programming is not an exception \textendash GitHub has stated that Copilot is already used to write up to 30\% code in the company.
+    Copilot is based on Codex, a Transformer model trained on code as sequence.
+    However, sequence is not a perfect representation for programming languages.
+    In this work we claim and demonstrate that by combining the advantages of Transformers
+    and graph representations of code it is possible to achieve very good results even with comparably small models.
+\end{abstract}
+
+\keywords{neural networks, Transformers, graphs, abstract syntax tree, data flow graph}
+
+\maketitle
+
+\section{Introduction}\label{sec:introduction}
+
+Application of Transformers yet again has managed to break the deadlock \textemdash this time in the task of code generation~\cite{hendrycks_measuring_2021,chen_evaluating_2021,li_competition-level_nodate,nijkamp_conversational_2022}.
+Nevertheless, the versatile Transformer architecture has displayed good results on several benchmarks,
+in the recent work~\cite{xu_systematic_2022} it was shown that increasing the size of the model doesn't result in a better performance.
+Moreover, it is evident that context matters a lot to produce a working code.
+However, it is not feasible to relentlessly increase the length of context sequence in a Transformer.
+Therefore, a different approach is needed to boost the efficiency in the task of code synthesis~\cite{arutyunov_big_2022}.
+
+First of all, an expressive code representation has to be selected.
+Several ways including token-based, structured and graph-based approaches have been reviewed~\cite{sm_avdoshin_code_2022}.
+For instance, graph representation using abstract syntax tree (AST), data-flow graph (DFG) and control-flow graph (CFG)
+yield good results in such tasks as variable misuse detection and correction~\cite{allamanis_learning_2017}.
+Such graph representation can capture an extensive amount of information about the programs code.
+
+Secondly, a versatile model architecture that supports learning on graphs must be used.
+Multiple models such as RNN~\cite{white_deep_2016}, LSTM~\cite{wei_supervised_2017} and CNN~\cite{mou_convolutional_2016} with flattened graphs have been used.
+However, graph-aware model architecture is more suitable for the graph representation of code.
+For this reason, Graph Neural Networks (GNN) are a more reasonable choice of architecture,
+namely message-passing neural networks~\cite{allamanis_learning_2017}.
+
+Nonetheless, in this work we aim to make the most from both: the advantages of Transformer architecture and graph representation of code.
+For instance, we will use Transformer training parallelization and graph code representation created from AST.
+To make this possible we will use Pure Transformers~\cite{kim_pure_2022} instead of models that have some architectural alterations to support graph structure~\cite{kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
+
+Our main contributions:
+\begin{enumerate}
+    \item Source code graph representation with AST
+    \item Transformer model that can be directly trained on graph structure data and applied for different tasks including code and documentation generation
+    \item Model pretrained on Python source code represented as graph
+\end{enumerate}
+
+\section{Problem Statement}\label{sec:problem-statement}
+
+In this work we test the ability of Pure Transformers to add types to Python source code based on its graph structure.
+We compare the results with the models from previous work in Table 1~\cite{allamanis2020typilus}.
+
+\subsection{Dataset}\label{subsec:dataset}
+
+To train and test the model we gathered 600 Python repositories from GitHub containing type annotations from Typilus~\cite{allamanis2020typilus}.
+We clone these repositories and utilize pytype for static analysis, augmenting the corpus with inferred type annotations.
+The top 175 most downloaded libraries are added to the Python environment for type inference.
+Through deduplication, we remove over 133,000 near code duplicates to prevent bias.
+
+The resulting dataset comprises 118,440 files with 5,997,459 symbols, of which 252,470 have non-Any non-None type annotations.
+The annotations exhibit diversity with a heavy-tailed distribution, where the top 10 types cover half of the dataset, primarily including str, bool, and int.
+Only 158 types have over 100 annotations, while the majority of types are used fewer than 100 times each, forming 32\% of the dataset.
+This distribution underscores the importance of accurately predicting annotations, especially for less common types.
+The long-tail of types consists of user-defined and generic types with various type arguments.
+Finally, they split the data into train-validation-test sets with proportions of 70-10-20, respectively.
+
+\subsection{Metrics}\label{subsec:metrics}
+
+To test the model we use two metrics from the Typilus paper~\cite{allamanis2020typilus}:
+
+\begin{description}
+    \item[Exact Match] $\tau_p$ and $\tau_g$ match exactly.
+    \item[Match up to Parametric Type] Exact match when ignoring all type parameters.
+\end{description}
+
+\section{Previous Work}\label{sec:previous-work}
+
+\begin{table*}
+    \centering
+    \begin{tabular}{lll}
+        \toprule
+        \textbf{Name} & \textbf{\% Exact Match} & \textbf{\% Match up to Parametric Type} \\
+        \midrule
+        GraphCoder & 41\% & 45.9\%  \\
+        Typilus & 54.6\% & 64.1\% \\
+        \bottomrule
+    \end{tabular}
+    \caption{Quantitative evaluation of models measuring their ability to
+    predict ground truth type annotations.}
+    \label{tab:human-eval-results}
+\end{table*}
+
+\subsection{Graph Transformers}\label{subsec:graph-transformers}
+
+Graph Transformers is a novel architecture that has been developing in the past few years.
+They have been applied for several tasks, mostly in the field of molecule generation, node classification and node feature regression~\cite{kim_pure_2022,kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
+
+AST and DFG have already been used with Transformers in the code generation and summarization tasks~\cite{wang_unified_2022,tang_ast-transformer_2021,sun_treegen_2020},
+as well as
+
+\section{Proposed Solution}\label{sec:proposed-solution}
+
+\subsection{Model Architecture}\label{subsec:model-architecture}
+
+We base our model architecture on TokenGT~\cite{kim_pure_2022}.
+For training, cross entropy loss with weights is used due to the imbalance of the dataset.
+
+\section{Experiment Results and Ablation}\label{sec:experiment-results-and-ablation}
+
+For now, the model has been trained and tested on one repository.
+The resulting accuracy for all types is 41\% and 45.9\% accuracy up to parametric type.
+
+\section{Future Work}\label{sec:future-work}
+
+In this work we explored the application of Graph Transformers for type inference.
+The versatile architecture of the proposed solution lets us explore other tasks.
+
+First, if a universal version of AST parsing is used the can train the model for multiple programming languages~\cite{wang_unified_2022}.
+Second, we can train the model using a technique similar to generative pretrained models~\cite{radford_language_2019,brown_language_2020} to generate code.
+Third, our model can be used to generate code summarization or docstring generation~\cite{barone_parallel_2017,liu_haconvgnn_2021}.
+Another useful task is to detect errors and generate fixes~\cite{bhatia_automated_2016,fujimoto_addressing_2018,marginean_sapfix_2019}.
+Finally, we can extend our model with information about changes to analyse them and propose refactoring possibilities~\cite{cabrera_lozoya_commit2vec_2021}.
+
+\section{Conclusion}\label{sec:conclusion}
+
+As for the conclusion, we were able to create a universal model based on TokenGT~\cite{kim_pure_2022} and code represented as graphs.
+One of the most important advantages of this model is that the code graph is used directly by the model.
+Secondly, the model can be modified to fit other tasks, such as code generation and summarization, docstring generation, refactoring and many more.
+The code graph can also be extended by different features and node types, since the representation does not differ depending on graph structure.
+
+\section{Acknowledgments}\label{sec:acknowledgments}
+
+This research was supported in part through computational resources of HPC facilities at HSE University~\cite{kostenetskiy_hpc_2021}.
+
+\printbibliography
+
+\end{document}
