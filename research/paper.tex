@@ -1,54 +1,44 @@
-\documentclass[sigplan,natbib=false]{acmart}
-\RequirePackage[
-    datamodel=acmdatamodel,
-    style=acmauthoryear,backend=biber
-]{biblatex}
+\documentclass[conference]{IEEEtran}
+\usepackage{biblatex}
 \usepackage{amsfonts}
 \usepackage{amsmath}
+\usepackage{booktabs}
+\newcommand{\bibliofont}{\footnotesize}
+\renewcommand\IEEEkeywordsname{Keywords}
 
 \addbibresource{paper.bib}
 
 \begin{document}
 
-\author{G.A. Arutyunov}
-\orcid{00000-0003-4537-4332}
-\email{gaarutyunov@edu.hse.ru}
-\affiliation{%
-    \institution{HSE University}
-    \streetaddress{20, Myasnitskaya st., Moscow}
-    \city{Moscow}
-    \country{Russia}
-    \postcode{101000}}
-\author{S.M. Avdoshin}
-\orcid{0000-0001-8473-8077}
-\email{savdoshin@hse.ru}
-\affiliation{%
-    \institution{HSE University}
-    \streetaddress{20, Myasnitskaya st., Moscow}
-    \city{Moscow}
-    \country{Russia}
-    \postcode{101000}}
+\author{
+    \IEEEauthorblockN{{\bf German Arutyunov}\IEEEauthorrefmark{1}\\ \tt\footnotesize gaarutyunov@edu.hse.ru} \and
+    \IEEEauthorblockN{{\bf Sergey Avdoshin}\IEEEauthorrefmark{1}\\ \tt\footnotesize savdoshin@hse.ru}
+    \and
+    \IEEEauthorblockA{\IEEEauthorrefmark{1}HSE University, 20, Myasnitskaya st., Moscow, Russia}
+}
 
-\title[GraphCoder]{GraphCoder: Transformer Pre-trained on Code Represented as Graph}
+\title{GraphTyper: Neural Types Inference from Code Represented as Graph}
 
 \begin{abstract}
     Although software development is mostly a creative process, there are many scrutiny tasks.
     As in other industries there is a trend for automation of routine work.
     In many cases machine learning and neural networks have become a useful assistant in that matter.
-    Programming is not an exception \textendash GitHub has stated that Copilot is already used to write up to 30\% code in the company.
+    Programming is not an exception: GitHub has stated that Copilot is already used to write up to 30\% code in the company.
     Copilot is based on Codex, a Transformer model trained on code as sequence.
     However, sequence is not a perfect representation for programming languages.
     In this work we claim and demonstrate that by combining the advantages of Transformers
     and graph representations of code it is possible to achieve very good results even with comparably small models.
 \end{abstract}
 
-\keywords{neural networks, Transformers, graphs, abstract syntax tree, data flow graph}
+\begin{IEEEkeywords}
+    neural networks, Transformers, graphs, abstract syntax tree
+\end{IEEEkeywords}
 
 \maketitle
 
 \section{Introduction}\label{sec:introduction}
 
-Application of Transformers yet again has managed to break the deadlock \textemdash this time in the task of code generation~\cite{hendrycks_measuring_2021,chen_evaluating_2021,li_competition-level_nodate,nijkamp_conversational_2022}.
+Application of Transformers yet again has managed to break the deadlock: this time in the task of code generation~\cite{hendrycks_measuring_2021,chen_evaluating_2021,li_competition-level_nodate,nijkamp_conversational_2022}.
 Nevertheless, the versatile Transformer architecture has displayed good results on several benchmarks,
 in the recent work~\cite{xu_systematic_2022} it was shown that increasing the size of the model doesn't result in a better performance.
 Moreover, it is evident that context matters a lot to produce a working code.
@@ -102,8 +92,8 @@ Finally, they split the data into train-validation-test sets with proportions of
 To test the model we use two metrics from the Typilus paper~\cite{allamanis2020typilus}:
 
 \begin{description}
-    \item[Exact Match] $\tau_p$ and $\tau_g$ match exactly.
-    \item[Match up to Parametric Type] Exact match when ignoring all type parameters.
+    \item{Exact Match: $\tau_p$ and $\tau_g$ match exactly.}
+    \item{Match up to Parametric Type: Exact match when ignoring all type parameters.}
 \end{description}
 
 \section{Previous Work}\label{sec:previous-work}
@@ -114,13 +104,13 @@ To test the model we use two metrics from the Typilus paper~\cite{allamanis2020t
         \toprule
         \textbf{Name} & \textbf{\% Exact Match} & \textbf{\% Match up to Parametric Type} \\
         \midrule
-        GraphCoder & 41\% & 45.9\%  \\
+        GraphTyper & 41\% & 45.9\%  \\
         Typilus & 54.6\% & 64.1\% \\
         \bottomrule
     \end{tabular}
     \caption{Quantitative evaluation of models measuring their ability to
     predict ground truth type annotations.}
-    \label{tab:human-eval-results}
+    \label{tab:results}
 \end{table*}
 
 \subsection{Graph Transformers}\label{subsec:graph-transformers}
