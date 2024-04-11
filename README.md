@@ -1,4 +1,4 @@
-# GraphTyper: Neural Types Inference from Code Represented as Graphs
+# GraphTyper: Neural Types Inference from Code Represented as Graph
 
 ## Citation
 
