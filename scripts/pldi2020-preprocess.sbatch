@@ -8,4 +8,4 @@
 #SBATCH --cpus-per-task=4            # Требуемое кол-во CPU
 
 module load singularity/3.9.0
-singularity run --bind ~/data:/usr/data --writable scripts/typilus-data_latest.sif
+singularity run --bind $1:/usr/data --writable scripts/typilus-data_latest.sif
