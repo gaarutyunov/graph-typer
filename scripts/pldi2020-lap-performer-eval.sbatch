@@ -31,5 +31,5 @@ chmod +x ./scripts/prepare.sh
 source ./scripts/prepare.sh
 
 # Train model
-chmod +x ./scripts/pldi2020-small-lap-performer-eval.sh
-source ./scripts/pldi2020-small-lap-performer-eval.sh $1
+chmod +x ./scripts/pldi2020-lap-performer-eval.sh
+source ./scripts/pldi2020-lap-performer-eval.sh $1
