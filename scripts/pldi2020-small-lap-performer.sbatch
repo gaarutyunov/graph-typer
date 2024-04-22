@@ -34,4 +34,4 @@ source ./prepare.sh
 
 # Train model
 chmod +x ./pldi2020-small-lap-performer.sh
-source ./pldi2020-small-lap-performer.sh
+source ./pldi2020-small-lap-performer.sh $1
