@@ -30,7 +30,7 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --data-buffer-size 20 \
                            --tensorboard-logdir ./scripts/tb/pldi2020-gc-lap-performer \
                            --checkpoint-path ./scripts/ckpts/pldi2020-gc-lap-performer/checkpoint_best.pt \
-                           --metadata-path ~/data/tensorised-data/train/metadata.pkl.gz \
-                           --type-lattice-path ~/data/_type_lattice.json.gz \
-                           --alias-metadata-path ~/data/typingRules.json \
-                           --weights-path ~/data/weights.pkl.gz
+                           --metadata-path $1/tensorised-data/train/metadata.pkl.gz \
+                           --type-lattice-path $1/_type_lattice.json.gz \
+                           --alias-metadata-path $1/typingRules.json \
+                           --weights-path $1/weights.pkl.gz
