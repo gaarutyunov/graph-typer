@@ -8,7 +8,7 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --user-dir graph_coder \
                            --num-workers 0 \
                            --ddp-backend=legacy_ddp \
-                           --dataset-name pldi2020_small \
+                           --dataset-name pldi2020 \
                            --task node_classification \
                            --user-data-dir graph_coder/data \
                            --criterion cross_entropy_loss \
@@ -28,8 +28,8 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --lr 2e-4 --end-learning-rate 1e-9 \
                            --batch-size 1 \
                            --data-buffer-size 20 \
-                           --tensorboard-logdir ./scripts/tb/pldi2020_small-gc-lap-performer \
-                           --checkpoint-path ./scripts/ckpts/pldi2020_small-gc-lap-performer/checkpoint_best.pt \
+                           --tensorboard-logdir ./scripts/tb/pldi2020-gc-lap-performer \
+                           --checkpoint-path ./scripts/ckpts/pldi2020-gc-lap-performer/checkpoint_best.pt \
                            --metadata-path ~/data/tensorised-data/train/metadata.pkl.gz \
                            --type-lattice-path ~/data/_type_lattice.json.gz \
                            --alias-metadata-path ~/data/typingRules.json \

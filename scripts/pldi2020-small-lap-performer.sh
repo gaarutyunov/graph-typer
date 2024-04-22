@@ -7,7 +7,7 @@ fairseq-train \
 --user-dir ../graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \
---dataset-name pldi2020_small \
+--dataset-name pldi2020 \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion cross_entropy_loss \
@@ -27,7 +27,7 @@ fairseq-train \
 --lr 2e-4 --end-learning-rate 1e-9 \
 --batch-size 16 \
 --data-buffer-size 20 \
---save-dir ./ckpts/pldi2020_small-gc-lap-performer \
---tensorboard-logdir ./tb/pldi2020_small-gc-lap-performer \
+--save-dir ./ckpts/pldi2020-gc-lap-performer \
+--tensorboard-logdir ./tb/pldi2020-gc-lap-performer \
 --weights-path ~/data/weights.pkl.gz \
 --no-epoch-checkpoints
