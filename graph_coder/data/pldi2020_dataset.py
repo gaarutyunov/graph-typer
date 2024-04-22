@@ -52,9 +52,9 @@ class PLDI2020Dataset(Dataset):
         self.__idx = range(self.__len)
         self._weights = None
         self.load_meta()
-        super().__init__(root, transform, pre_transform, pre_filter)
         self.spec_file = spec_file
         self.prepare_file = prepare_file
+        super().__init__(root, transform, pre_transform, pre_filter)
 
     def download(self):
         download_url(self.spec_file, self.raw_dir)
