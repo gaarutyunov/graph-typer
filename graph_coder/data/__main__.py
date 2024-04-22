@@ -7,7 +7,7 @@ def main(args: argparse.Namespace) -> None:
     dataset = PLDI2020Dataset(
         args.dataset_root,
         split=args.split
-    )
+    ).load_meta()
     print(dataset)
     print(dataset[0])
 
