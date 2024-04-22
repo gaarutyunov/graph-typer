@@ -29,5 +29,5 @@ fairseq-train \
 --data-buffer-size 20 \
 --save-dir ./ckpts/pldi2020-gc-lap-performer \
 --tensorboard-logdir ./tb/pldi2020-gc-lap-performer \
---weights-path $1/weights.pkl.gz \
+--weights-path $1/processed-data/train/weights.pkl.gz \
 --no-epoch-checkpoints

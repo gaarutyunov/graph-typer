@@ -31,6 +31,6 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py --split test \
                            --tensorboard-logdir ./scripts/tb/pldi2020-gc-lap-performer \
                            --checkpoint-path ./scripts/ckpts/pldi2020-gc-lap-performer/checkpoint_best.pt \
                            --metadata-path $1/tensorised-data/train/metadata.pkl.gz \
-                           --type-lattice-path $1/_type_lattice.json.gz \
+                           --type-lattice-path $1/graph-dataset/_type_lattice.json.gz \
                            --alias-metadata-path $1/typingRules.json \
-                           --weights-path $1/weights.pkl.gz
+                           --weights-path $1/processed-data/train/weights.pkl.gz
