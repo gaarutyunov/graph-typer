@@ -107,7 +107,16 @@ def graphcoder_architecture(args):
 @register_model_architecture("graph_coder", "graph_coder_big")
 def graphcoder_big_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 2048)
+    args.encoder_layers = getattr(args, "encoder_layers", 6)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 8)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 8192)
+    graphcoder_base_architecture(args)
+
+
+@register_model_architecture("graph_coder", "graph_coder_deep")
+def graphcoder_deep_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
     args.encoder_layers = getattr(args, "encoder_layers", 24)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 64)
-    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 8192)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 2048)
     graphcoder_base_architecture(args)
