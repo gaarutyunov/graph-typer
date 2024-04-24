@@ -7,5 +7,7 @@
 #SBATCH --nodes=1                    # Требуемое кол-во узлов
 #SBATCH --cpus-per-task=1            # Требуемое кол-во CPU
 
+DATASET_ROOT=${1:-~/data}
+
 module load singularity/3.9.0
-singularity run --bind $1:/usr/data --writable scripts/typilus-data_latest.sif
+singularity run --bind "$DATASET_ROOT":/usr/data --writable scripts/typilus-data_latest.sif

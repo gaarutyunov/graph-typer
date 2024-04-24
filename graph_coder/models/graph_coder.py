@@ -57,7 +57,7 @@ class GraphCoderEncoder(TokenGTEncoder):
 
 
 @register_model_architecture("graph_coder", "graph_coder_base")
-def tokengt_base_architecture(args):
+def graphcoder_base_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 768)
     args.encoder_layers = getattr(args, "encoder_layers", 12)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
@@ -93,3 +93,21 @@ def tokengt_base_architecture(args):
 
     args.return_attention = getattr(args, "return_attention", False)
     base_architecture(args)
+
+
+@register_model_architecture("graph_coder", "graph_coder")
+def graphcoder_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
+    args.encoder_layers = getattr(args, "encoder_layers", 6)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 8)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 4096)
+    graphcoder_base_architecture(args)
+
+
+@register_model_architecture("graph_coder", "graph_coder_big")
+def graphcoder_big_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 2048)
+    args.encoder_layers = getattr(args, "encoder_layers", 24)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 64)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 8192)
+    graphcoder_base_architecture(args)

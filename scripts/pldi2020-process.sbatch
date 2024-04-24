@@ -7,4 +7,7 @@
 #SBATCH --nodes=1                    # Требуемое кол-во узлов
 #SBATCH --cpus-per-task=1            # Требуемое кол-во CPU
 
-PYTHONPATH=. python -m graph_coder.data --dataset-root $1 --split $2
+DATASET_ROOT=${1:-~/data}
+SPLIT=${2:-train}
+
+PYTHONPATH=. python -m graph_coder.data --dataset-root "$DATASET_ROOT" --split "$SPLIT"

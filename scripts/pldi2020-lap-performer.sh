@@ -2,8 +2,12 @@
 
 ulimit -c unlimited
 
+DATASET_ROOT=$1
+MODEL_ARCH=$2
+CKPTS_PATH=$3
+
 fairseq-train \
---dataset-root $1 \
+--dataset-root "$DATASET_ROOT" \
 --user-dir ../graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \
@@ -11,7 +15,7 @@ fairseq-train \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion cross_entropy_loss \
---arch graph_coder_base \
+--arch "$MODEL_ARCH" \
 --lap-node-id \
 --lap-node-id-k 16 \
 --lap-node-id-sign-flip \
@@ -27,7 +31,7 @@ fairseq-train \
 --lr 2e-4 --end-learning-rate 1e-9 \
 --batch-size 16 \
 --data-buffer-size 20 \
---save-dir ./ckpts/pldi2020-gc-lap-performer \
---tensorboard-logdir ./tb/pldi2020-gc-lap-performer \
---weights-path $1/processed-data/train/weights.pkl.gz \
+--save-dir ./ckpts/"$CKPTS_PATH" \
+--tensorboard-logdir ./tb/"$CKPTS_PATH" \
+--weights-path "$DATASET_ROOT"/processed-data/train/weights.pkl.gz \
 --no-epoch-checkpoints
