@@ -58,7 +58,6 @@ class GraphCoderEncoder(TokenGTEncoder):
 
 @register_model_architecture("graph_coder", "graph_coder_base")
 def graphcoder_base_architecture(args):
-    args.batch_size = getattr(args, "batch_size", 16)
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 768)
     args.encoder_layers = getattr(args, "encoder_layers", 12)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
@@ -98,7 +97,6 @@ def graphcoder_base_architecture(args):
 
 @register_model_architecture("graph_coder", "graph_coder")
 def graphcoder_architecture(args):
-    args.batch_size = getattr(args, "batch_size", 8)
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
     args.encoder_layers = getattr(args, "encoder_layers", 6)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 8)
@@ -108,7 +106,6 @@ def graphcoder_architecture(args):
 
 @register_model_architecture("graph_coder", "graph_coder_big")
 def graphcoder_big_architecture(args):
-    args.batch_size = getattr(args, "batch_size", 4)
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 2048)
     args.encoder_layers = getattr(args, "encoder_layers", 24)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 64)
