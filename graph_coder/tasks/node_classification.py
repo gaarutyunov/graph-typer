@@ -29,12 +29,12 @@ class NodeClassificationConfig(GraphPredictionConfig):
     )
 
     max_nodes: int = field(
-        default=512,
+        default=10000,
         metadata={"help": "max nodes per graph"},
     )
 
     max_edges: int = field(
-        default=2048,
+        default=20000,
         metadata={"help": "max edges per graph"},
     )
 
