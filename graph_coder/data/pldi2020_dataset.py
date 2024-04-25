@@ -28,7 +28,12 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train"):
         os.path.expanduser(cfg.dataset_root),
         pre_filter=partial(filter_data, max_nodes=cfg.max_nodes, max_edges=cfg.max_edges),
         split=split,
-        num_classes=cfg.num_classes
+        num_classes=cfg.num_classes,
+        sizes={
+            "train": 59,
+            "valid": 8,
+            "test": 19
+        }
     )
 
 
@@ -41,7 +46,8 @@ class PLDI2020Dataset(Dataset):
                  split: Literal["train", "test", "valid"] = "train",
                  num_classes: int = 100,
                  spec_file: str = __SPEC__,
-                 prepare_file: str = __PREPARE__):
+                 prepare_file: str = __PREPARE__,
+                 sizes: Dict[str, int] = None):
         if isinstance(root, str):
             root = os.path.expanduser(os.path.normpath(root))
 
@@ -50,6 +56,7 @@ class PLDI2020Dataset(Dataset):
         self.num_classes = num_classes
         self.__len = 0
         self.__idx = range(self.__len)
+        self._size = sizes.get(split, 1)
         self._weights = None
         self.load_meta()
         self.spec_file = spec_file
@@ -92,7 +99,7 @@ class PLDI2020Dataset(Dataset):
 
     @property
     def raw_file_names(self) -> Union[str, List[str], Tuple]:
-        return ["chunk_0000.pkl.gz"]
+        return list(f"chunk_{i:04d}.pkl.gz" for i in range(self._size))
 
     @property
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
