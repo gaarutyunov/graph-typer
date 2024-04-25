@@ -7,7 +7,7 @@ from tokengt.data import DATASET_REGISTRY
 def main(args: argparse.Namespace) -> None:
     dataset: PLDI2020Dataset = DATASET_REGISTRY.get(args.dataset_name)(
         args,
-        slpit=args.split
+        split=args.split
     ).load_meta()
     print(dataset)
     print(dataset[0])
