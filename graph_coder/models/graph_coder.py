@@ -120,3 +120,12 @@ def graphcoder_deep_architecture(args):
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 64)
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 2048)
     graphcoder_base_architecture(args)
+
+
+@register_model_architecture("graph_coder", "graph_coder_final")
+def graphcoder_ablated_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 2048)
+    args.encoder_layers = getattr(args, "encoder_layers", 12)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 16)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 4096)
+    graphcoder_base_architecture(args)
