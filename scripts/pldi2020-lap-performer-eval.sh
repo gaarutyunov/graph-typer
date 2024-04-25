@@ -2,10 +2,11 @@
 
 ulimit -c unlimited
 
-DATASET_ROOT=$1
-MODEL_ARCH=$2
-CKPTS_PATH=$3
-TOP_N=$4
+DATASET_NAME=$1
+DATASET_ROOT=$2
+MODEL_ARCH=$3
+CKPTS_PATH=$4
+TOP_N=$5
 
 PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 --split test \
@@ -15,7 +16,7 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 --user-dir graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \
---dataset-name pldi2020 \
+--dataset-name "$DATASET_NAME" \
 --task node_classification \
 --user-data-dir graph_coder/data \
 --criterion cross_entropy_loss \
