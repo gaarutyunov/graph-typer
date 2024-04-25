@@ -1,10 +1,13 @@
 import argparse
+import sys
 
 from graph_coder.data.pldi2020_dataset import PLDI2020Dataset
 from tokengt.data import DATASET_REGISTRY
 
 
 def main(args: argparse.Namespace) -> None:
+    sys.setrecursionlimit(1500)
+
     dataset: PLDI2020Dataset = DATASET_REGISTRY.get(args.dataset_name)(
         args,
         split=args.split
