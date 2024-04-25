@@ -7,7 +7,14 @@ from typilus.model.typelattice import TypeLattice
 
 
 class TypePredictionEvaluator:
-    def __init__(self, type_lattice_path: RichPath, alias_metadata_path: RichPath, bottom_symbol: str = 'typing.Any'):
+    def __init__(
+            self,
+            type_lattice_path: RichPath,
+            alias_metadata_path: RichPath,
+            bottom_symbol: str = 'typing.Any',
+            top_n: int = 1
+    ):
+        self.__top_n = top_n
         self.__num_samples = 0
         self.__num_samples_on_lattice = 0
         self.__exact_match = 0
@@ -26,18 +33,48 @@ class TypePredictionEvaluator:
     def add_sample(self, ground_truth: str, predicted_dist: Dict[str, float]) -> None:
         self.__num_samples += 1
 
-        predicted = max(predicted_dist, key=lambda x: predicted_dist[x])
-        assert predicted is not None, "predicted cannot be none"
         assert ground_truth is not None, "ground truth cannot be none"
+        assert predicted_dist is not None, "predicted_dist cannot be none"
+
+        # Determine Top-n prediction
+        if self.__top_n == 1:
+            predicted = max(predicted_dist, key=lambda x: predicted_dist[x])
+
+            is_correct = self.__type_lattice.are_same_type(ground_truth, predicted)
+            is_accurate_utpt = self.__type_lattice.are_same_type(ground_truth.split("[")[0], predicted.split("[")[0])
+        else:
+            predicted_top_n = sorted(predicted_dist.items(), key=lambda item: item[1], reverse=True)
+
+            predicted = None
+            predicted_utpt = None
+            is_correct, is_accurate_utpt = False, False
+
+            for predicted_type, prob in predicted_top_n[:self.__top_n]:
+                is_correct_ = self.__type_lattice.are_same_type(ground_truth, predicted_type)
+                is_accurate_utpt_ = self.__type_lattice.are_same_type(ground_truth.split("[")[0], predicted_type.split("[")[0])
+
+                if is_accurate_utpt_:
+                    is_accurate_utpt = True
+                    predicted_utpt = predicted_type
+
+                if is_correct_:
+                    is_correct = True
+                    predicted = predicted_type
+                    break
+
+            if predicted is None and predicted_utpt is not None:
+                predicted = predicted_utpt
+
+            if predicted is None:
+                predicted = predicted_top_n[0][0]
+
+            assert predicted is not None, "predicted cannot be none"
 
         # Exact Match
-        is_correct = self.__type_lattice.are_same_type(ground_truth, predicted)
-
         self.__exact_match += 1 if is_correct else 0
         self.__per_type[ground_truth][predicted] += 1
 
         # Accurancy up to parametric type
-        is_accurate_utpt = self.__type_lattice.are_same_type(ground_truth.split("[")[0], predicted.split("[")[0])
         self.__accuracy_up_to_parametric_type += 1 if is_accurate_utpt else 0
         self.__per_type_metrics[ground_truth]["accuracy_up_to_parametric_type"] += 1 if is_accurate_utpt else 0
 

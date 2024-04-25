@@ -116,7 +116,11 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     type_lattice_path = RichPath.create(os.path.expanduser(args.type_lattice_path))
     alias_metadata_path = RichPath.create(os.path.expanduser(args.alias_metadata_path))
 
-    evaluator = TypePredictionEvaluator(type_lattice_path, alias_metadata_path)
+    evaluator = TypePredictionEvaluator(
+        type_lattice_path,
+        alias_metadata_path,
+        top_n=args.top_n
+    )
 
     # infer
     with torch.no_grad():
@@ -206,6 +210,10 @@ def main():
     parser.add_argument(
         "--metric",
         type=str,
+    )
+    parser.add_argument(
+        "--top-n",
+        type=int,
     )
     args = options.parse_args_and_arch(parser, modify_parser=None)
     logger = logging.getLogger(__name__)

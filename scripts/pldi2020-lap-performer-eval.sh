@@ -5,10 +5,12 @@ ulimit -c unlimited
 DATASET_ROOT=$1
 MODEL_ARCH=$2
 CKPTS_PATH=$3
+TOP_N=$4
 
 PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 --split test \
 --metric auc \
+--top-n "$TOP_N" \
 --dataset-root "$DATASET_ROOT" \
 --user-dir graph_coder \
 --num-workers 0 \
@@ -35,7 +37,7 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 --data-buffer-size 20 \
 --tensorboard-logdir ./scripts/tb/"$CKPTS_PATH" \
 --checkpoint-path ./scripts/ckpts/"$CKPTS_PATH"/checkpoint_best.pt \
---output-path ./scripts/ckpts/"$CKPTS_PATH"/result.json \
+--output-path ./scripts/ckpts/"$CKPTS_PATH"/result_top_"$TOP_N".json \
 --metadata-path "$DATASET_ROOT"/tensorised-data/train/metadata.pkl.gz \
 --type-lattice-path "$DATASET_ROOT"/graph-dataset/_type_lattice.json.gz \
 --alias-metadata-path "$DATASET_ROOT"/typingRules.json \

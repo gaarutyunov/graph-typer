@@ -36,10 +36,11 @@ chmod +x ./scripts/pldi2020-lap-performer-eval.sh
 DATASET_ROOT=${1:-~/data}
 MODEL_ARCH=${2:-graph_coder_base}
 CKPTS_PATH=${3:-pldi2020-gc-lap-performer-${MODEL_ARCH}}
+TOP_N=${4:-1}
 
-echo "Evaluating..."
+echo "Evaluating Top-$TOP_N..."
 echo "Model arch: $MODEL_ARCH"
 echo "Dataset root: $DATASET_ROOT"
 echo "Using checkpoints from: ckpts/$CKPTS_PATH"
 
-source ./scripts/pldi2020-lap-performer-eval.sh "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH"
+source ./scripts/pldi2020-lap-performer-eval.sh "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N"
