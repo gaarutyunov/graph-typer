@@ -35,4 +35,5 @@ fairseq-train \
 --save-dir ./ckpts/"$CKPTS_PATH" \
 --tensorboard-logdir ./tb/"$CKPTS_PATH" \
 --weights-path "$DATASET_ROOT"/processed-data/train/weights.pkl.gz \
---no-epoch-checkpoints
+--no-epoch-checkpoints \
+--patience 10
