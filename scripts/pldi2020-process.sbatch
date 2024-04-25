@@ -9,5 +9,11 @@
 
 DATASET_ROOT=${1:-~/data}
 SPLIT=${2:-train}
+MAX_NODES=${3:-512}
+MAX_EDGES=${4:-2048}
 
-PYTHONPATH=. python -m graph_coder.data --dataset-root "$DATASET_ROOT" --split "$SPLIT"
+PYTHONPATH=. python -m graph_coder.data \
+--dataset-root "$DATASET_ROOT" \
+--split "$SPLIT" \
+--max-nodes "$MAX_NODES" \
+--max-edges "$MAX_EDGES"
