@@ -4,14 +4,14 @@ import json
 #%%
 data = []
 
-for model in [
-    "Base",
-    "Ablated",
-    "Deep",
-    "Big",
-    "Final"
-]:
-    for top_n in [1, 3, 5, 10]:
+for top_n in [1, 3, 5, 10]:
+    for model in [
+        "Ablated",
+        "Base",
+        "Deep",
+        "Big",
+        "Final"
+    ]:
         em = []
         em_utpt = []
         for i, ctx in enumerate([512, 1024]):
@@ -27,16 +27,16 @@ for model in [
         data.append(em)
 #%%
 idx_itr = [
+    [f"Top-{f}" for f in [1, 3, 5, 10]],
     [
-        "Base (51 mln)",
         "Ablated (51 mln)",
+        "Base (51 mln)",
         "Deep (214 mln)",
         "Big (331 mln)",
         "Final (432 mln)"
     ],
-    [f"Top-{f}" for f in [1, 3, 5, 10]]
 ]
-idx = pd.MultiIndex.from_product(idx_itr, names=["Model", "Top-n"])
+idx = pd.MultiIndex.from_product(idx_itr, names=["Top-n", "Model"])
 
 col_iter = [["Exact", "Up to Parametric Type"], ["512", "1024"]]
 col = pd.MultiIndex.from_product(col_iter, names=["\% Match", "Context Length"])

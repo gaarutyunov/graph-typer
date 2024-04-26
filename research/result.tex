@@ -1,10 +1,28 @@
-\begin{tabular}{lrr}
+\begin{tabular}{llrr}
 \toprule
-Model & \multicolumn{2}{r}{\% Match} \\
- & Exact & Up to Parametric Type \\
+ &  & Exact Match & Up to Parametric Type \\
+Top-n & Model &  &  \\
 \midrule
-GraphTyper & 41.00 & 45.90 \\
-Typilus & 54.60 & 64.10 \\
+\multirow[t]{4}{*}{Top-1} & GraphTyper & 34.71 & 36.43 \\
+ & Typilus & 45.47 & 55.02 \\
+ & Type4Py & 50.70 & 64.58 \\
+ & TypeWriter & 57.60 & 72.15 \\
+\cline{1-4}
+\multirow[t]{4}{*}{Top-3} & GraphTyper & 56.10 & 58.30 \\
+ & Typilus & 63.70 & 67.30 \\
+ & Type4Py & 65.90 & 70.40 \\
+ & TypeWriter & 68.20 & 73.20 \\
+\cline{1-4}
+\multirow[t]{4}{*}{Top-5} & GraphTyper & 66.10 & 74.20 \\
+ & Typilus & 71.60 & 79.80 \\
+ & Type4Py & 72.70 & 80.90 \\
+ & TypeWriter & 73.30 & 81.50 \\
+\cline{1-4}
+\multirow[t]{4}{*}{Top-10} & GraphTyper & 75.80 & 80.60 \\
+ & Typilus & 78.10 & 83.80 \\
+ & Type4Py & 78.70 & 84.70 \\
+ & TypeWriter & 79.20 & 85.40 \\
+\cline{1-4}
 \bottomrule
 \end{tabular}
 

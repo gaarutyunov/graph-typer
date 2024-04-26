@@ -81,14 +81,6 @@ To test the model we use two metrics from the Typilus paper~\cite{allamanis2020t
 
 \section{Previous Work}\label{sec:previous-work}
 
-\begin{table}
-    \centering
-    \caption{Quantitative evaluation of models measuring their ability to
-    predict ground truth type annotations.}
-    \label{tab:results}
-    \input{{result.tex}}
-\end{table}
-
 Graph Transformers is a novel architecture that has been developing in the past few years.
 They have been applied for several tasks, mostly in the field of molecule generation, node classification and node feature regression~\cite{kim_pure_2022,kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
 Apart from models with alterations to Transformer base architecture~\cite{ying_transformers_2021, kreuzer_rethinking_2021}
@@ -101,9 +93,15 @@ Moreover, graph representation of code has been used for the task of type infere
 However, the power of Transformers and Graph Representation of code hasn't been combined yet to solve the task of
 type inference in source code.
 This is the gap our model aims to fill.
-The results of testing our model is displayed in Table~\ref{tab:results}.
-We compare the results only with Typilus model~\cite{allamanis2020typilus}, since we closely follow their approach
-of data preparation, model training and testing.
+The results of our model compared to previous work~\cite{mir_type4py_2021, allamanis2020typilus, pradel2020typewriter} are displayed in Table~\ref{tab:results}.
+
+\begin{table}
+    \centering
+    \caption{Quantitative evaluation of models measuring their ability to
+    predict ground truth type annotations.}
+    \label{tab:results}
+    \input{{result.tex}}
+\end{table}
 
 \section{Proposed Solution}\label{sec:proposed-solution}
 
@@ -173,12 +171,12 @@ In addition, we preprocess the complete dataset to have 1024 nodes in graph at m
 Finally, we add the node and type identifiers from the TokenGT paper~\cite{kim_pure_2022}.
 The resulting model has 441 million parameters: 12 encoder layers, 16 attention heads, 2048 hidden dimension and 4096 feed-forward layer dimension.
 
-\begin{table*}[t]
+\begin{table}
     \centering
     \caption{Expirement results of Top-n predictions for different model variants.}
     \label{tab:ablation}
     \input{{ablation.tex}}
-\end{table*}
+\end{table}
 
 \section{Future Work}\label{sec:future-work}
 
