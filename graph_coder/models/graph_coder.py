@@ -77,10 +77,10 @@ def graphcoder_base_architecture(args):
     args.rand_node_id_dim = getattr(args, "rand_node_id_dim", 64)
     args.orf_node_id = getattr(args, "orf_node_id", False)
     args.orf_node_id_dim = getattr(args, "orf_node_id_dim", 64)
-    args.lap_node_id = getattr(args, "lap_node_id", False)
-    args.lap_node_id_k = getattr(args, "lap_node_id_k", 8)
-    args.lap_node_id_sign_flip = getattr(args, "lap_node_id_sign_flip", False)
-    args.lap_node_id_eig_dropout = getattr(args, "lap_node_id_eig_dropout", 0.0)
+    args.lap_node_id = getattr(args, "lap_node_id", True)
+    args.lap_node_id_k = getattr(args, "lap_node_id_k", 16)
+    args.lap_node_id_sign_flip = getattr(args, "lap_node_id_sign_flip", True)
+    args.lap_node_id_eig_dropout = getattr(args, "lap_node_id_eig_dropout", 0.2)
     args.type_id = getattr(args, "type_id", True)
 
     args.stochastic_depth = getattr(args, "stochastic_depth", False)
@@ -101,6 +101,13 @@ def graphcoder_architecture(args):
     args.encoder_layers = getattr(args, "encoder_layers", 6)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 8)
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 4096)
+    graphcoder_base_architecture(args)
+
+
+@register_model_architecture("graph_coder", "graph_coder_ablated")
+def graphcoder_ablated_architecture(args):
+    args.lap_node_id = getattr(args, "lap_node_id", False)
+    args.type_id = getattr(args, "type_id", False)
     graphcoder_base_architecture(args)
 
 
