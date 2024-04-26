@@ -1,3 +1,4 @@
+import logging
 import os
 import subprocess
 from functools import partial
@@ -136,23 +137,29 @@ class PLDI2020Dataset(Dataset):
 
                 def save(d: Data, mapping: Optional[Dict[int, int]] = None):
                     d.idx = idx
+                    try:
+                        sample_ = data_to_sample(d, mapping, sample["raw_data"]["supernodes"], sample.get("Provenance", "?"))
+                    except:
+                        logging.exception("transforming data[%d] to sample failed", idx)
+                        return False
                     target_path = result_path.join(f"data_{idx:d}.pkl.gz")
                     target_path.save_as_compressed_file(d)
                     sample_path = result_path.join(f"sample_{idx:d}.pkl.gz")
                     sample_path.save_as_compressed_file(
-                        data_to_sample(d, mapping, sample["raw_data"]["supernodes"], sample.get("Provenance", "?"))
+                        sample_
                     )
                     indexes.append(idx)
                     targets, counts = torch.unique(d.y, return_counts=True)
                     counter[targets] += counts
+                    return True
 
                 if should_split:
                     for graph, mapping in split_graph(data, max_nodes, max_edges):
-                        save(graph, mapping)
-                        idx += 1
+                        if save(graph, mapping):
+                            idx += 1
                 else:
-                    save(data)
-                    idx += 1
+                    if save(data):
+                        idx += 1
 
         indexes_path = RichPath.create(self.indexes_path)
         indexes_path.save_as_compressed_file(set(indexes))
