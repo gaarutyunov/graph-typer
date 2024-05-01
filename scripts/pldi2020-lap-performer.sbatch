@@ -24,7 +24,7 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --nodes=1
 #SBATCH --cpus-per-gpu=1
-#SBATCH --time=7-0:0
+#SBATCH --time=1-0:0
 
 # Load modules
 cd scripts
