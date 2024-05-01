@@ -1,59 +1,16 @@
 import logging
 
 from fairseq.models import register_model, register_model_architecture
-from fairseq.utils import safe_hasattr
 
 from tokengt.models import TokenGTModel
-from tokengt.models.tokengt import TokenGTEncoder, base_architecture
-
-import torch.nn.functional as F
+from tokengt.models.tokengt import base_architecture
 
 logger = logging.getLogger(__name__)
 
 
 @register_model("graph_coder")
 class GraphCoderModel(TokenGTModel):
-    @classmethod
-    def build_model(cls, args, task):
-        """Build a new model instance."""
-        # make sure all arguments are present in older models
-        base_architecture(args)
-
-        if not safe_hasattr(args, "max_nodes"):
-            args.max_nodes = args.tokens_per_sample
-
-        logger.info(args)
-
-        encoder = GraphCoderEncoder(args)
-        return cls(args, encoder)
-
-
-class GraphCoderEncoder(TokenGTEncoder):
-    def forward(self, batched_data, perturb=None, masked_tokens=None, **unused):
-        inner_states, graph_rep, attn_dict = self.graph_encoder(batched_data, perturb=perturb)
-
-        x = inner_states[-1].transpose(0, 1)  # B x T x C
-
-        # project masked tokens only
-        if masked_tokens is not None:
-            raise NotImplementedError
-
-        x = self.layer_norm(self.activation_fn(self.lm_head_transform_weight(x)))
-
-        # project back to size of vocabulary
-        if self.share_input_output_embed and hasattr(
-                self.graph_encoder.embed_tokens, "weight"
-        ):
-            x = F.linear(x, self.graph_encoder.embed_tokens.weight)
-        elif self.embed_out is not None:
-            x = self.embed_out(x)
-        if self.lm_output_learned_bias is not None:
-            x = x + self.lm_output_learned_bias
-
-        if self.return_attention:
-            return x[:, 2:, :], attn_dict
-        else:
-            return x[:, 2:, :]
+    pass
 
 
 @register_model_architecture("graph_coder", "graph_coder_base")

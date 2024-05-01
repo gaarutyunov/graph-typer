@@ -81,7 +81,6 @@ def collator(
         lap_eigvec,
         lap_eigval,
         ys,
-        target_node_idxs
     ) = zip(*[
         (
             item.idx,
@@ -93,7 +92,6 @@ def collator(
             item.lap_eigvec,
             item.lap_eigval,
             item.y,
-            item.target_node_idxs
         )
         for item in items
     ])
@@ -102,8 +100,7 @@ def collator(
     edge_num = [i.size(0) for i in edge_data]
     max_n = max(node_num)
 
-    y = torch.cat(ys)  # [B,]
-    target_node_idxs = torch.cat(target_node_idxs)  # [B,]
+    y = torch.stack(ys, dim=0)  # [B,]
     edge_index = torch.cat(edge_index, dim=1)  # [2, sum(edge_num)]
     edge_data = torch.cat(edge_data) + 1  # [sum(edge_num), De], +1 for nn.Embedding with pad_index=0
     node_data = torch.cat(node_data) + 1  # [sum(node_num), Dn], +1 for nn.Embedding with pad_index=0
@@ -124,7 +121,6 @@ def collator(
         lap_eigvec=lap_eigvec,
         lap_eigval=lap_eigval,
         y=y,
-        target_node_idxs=target_node_idxs,
         node_num=node_num,
         edge_num=edge_num,
         )

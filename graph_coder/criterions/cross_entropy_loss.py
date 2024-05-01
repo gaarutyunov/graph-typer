@@ -7,8 +7,6 @@ from fairseq import metrics
 from fairseq.criterions import register_criterion, FairseqCriterion
 from fairseq.dataclass import FairseqDataclass
 
-from graph_coder.utils import get_padded_node_mask
-
 
 @register_criterion("cross_entropy_loss", dataclass=FairseqDataclass)
 class CrossEntropyLoss(FairseqCriterion):
@@ -33,15 +31,13 @@ class CrossEntropyLoss(FairseqCriterion):
         with torch.no_grad():
             natoms = max(sample["net_input"]["batched_data"]["node_num"])
 
-            padded_node_mask = get_padded_node_mask(sample)
-
         logits = model(**sample["net_input"], perturb=perturb)
         targets = model.get_targets(sample, [logits])
         if self.weights.device != logits.device:
             self.weights = self.weights.to(logits.device, dtype=logits.dtype)
 
         loss = F.cross_entropy(
-            logits[padded_node_mask],
+            logits,
             targets,
             reduction="mean",
             weight=self.weights

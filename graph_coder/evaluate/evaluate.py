@@ -129,9 +129,6 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
             if torch.cuda.is_available():
                 sample = utils.move_to_cuda(sample)
             y = model(**sample["net_input"])
-            padded_node_mask = get_padded_node_mask(**sample["net_input"])
-            target_log_probs = y[padded_node_mask]
-            target_log_probs = target_log_probs[sample["net_input"]["batched_data"]["target_node_idxs"]]
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
@@ -147,7 +144,7 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
                 annotation = annotation_data['annotation']
                 original_annotations.append((node_idx, annotation, annotation_data['name'], annotation_data['location'], annotation_data['type']))
 
-            assert len(original_annotations) == target_log_probs.shape[0]
+            assert len(original_annotations) == y.shape[0]
 
             # This is also classification-specific due to class_id_to_class
             for i, (node_idx, node_type, var_name, annotation_location, annotation_type) in enumerate(original_annotations):
@@ -159,8 +156,8 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
                     name=var_name,
                     original_annotation=node_type,
                     annotation_type=annotation_type,
-                    predicted_annotation_logprob_dist={class_id_to_class(metadata, j): target_log_probs[i, j] for j in
-                                                       range(target_log_probs.shape[1])},
+                    predicted_annotation_logprob_dist={class_id_to_class(metadata, j): y[i, j] for j in
+                                                       range(y.shape[1])},
                     location=annotation_location
                 )
                 evaluator.add_sample(ground_truth=annotation.original_annotation,

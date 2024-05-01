@@ -58,8 +58,7 @@ class TargetDataset(FairseqDataset):
         return len(self.dataset)
 
     def collater(self, samples):
-        return torch.cat(samples)
-
+        return torch.stack(samples, dim=0)
 
 
 class TokenGTDataset:

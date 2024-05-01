@@ -1,15 +1,14 @@
-import logging
 import os
 import subprocess
-from functools import partial
 from typing import Union, List, Tuple, Optional, Callable, Literal, Dict, Any
 
+import networkx as nx
 import torch
 from dpu_utils.utils import RichPath
 from torch_geometric.data import Dataset, Data, download_url
 from tqdm.auto import tqdm
 
-from graph_coder.data.utils import sample_to_data, split_graph, data_to_sample
+from graph_coder.data.utils import sample_to_nx, split_nx, nx_to_data, nx_to_sample
 from tokengt.data import register_dataset
 from typilus.model.model import read_data_chunks
 
@@ -19,22 +18,23 @@ __PREPARE__ = \
     "https://raw.githubusercontent.com/typilus/typilus/master/src/data_preparation/scripts/prepare_data.sh"
 
 
-def filter_data(data: Data, max_nodes: int = 512, max_edges: int = 2048) -> Tuple[int, int, bool]:
-    return max_nodes, max_edges, data.x.size(0) > max_nodes or data.edge_attr.size(0) > max_edges
+def filter_data(g: nx.Graph, max_nodes: int = 512, max_edges: int = 2048) -> Tuple[int, int, bool]:
+    return max_nodes, max_edges, g.number_of_nodes() > max_nodes or g.number_of_edges() > max_edges
 
 
 @register_dataset("pldi2020")
 def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train"):
     return PLDI2020Dataset(
         os.path.expanduser(cfg.dataset_root),
-        pre_filter=partial(filter_data, max_nodes=cfg.max_nodes, max_edges=cfg.max_edges),
         split=split,
         num_classes=cfg.num_classes,
         sizes={
             "train": 59,
             "valid": 8,
             "test": 19
-        }
+        },
+        max_nodes=cfg.max_nodes,
+        max_edges=cfg.max_edges,
     )
 
 
@@ -48,16 +48,20 @@ class PLDI2020Dataset(Dataset):
                  num_classes: int = 100,
                  spec_file: str = __SPEC__,
                  prepare_file: str = __PREPARE__,
-                 sizes: Dict[str, int] = None):
+                 sizes: Dict[str, int] = None,
+                 max_nodes: int = 1024,
+                 max_edges: int = 4096):
         if isinstance(root, str):
             root = os.path.expanduser(os.path.normpath(root))
 
         self.root = root
         self.split = split
         self.num_classes = num_classes
-        self.__len = 0
-        self.__idx = range(self.__len)
+        self._len = 0
+        self._idx = range(self._len)
         self._size = sizes.get(split, 1)
+        self._max_nodes = max_nodes
+        self._max_edges = max_edges
         self._weights = None
         self.load_meta()
         self.spec_file = spec_file
@@ -72,13 +76,13 @@ class PLDI2020Dataset(Dataset):
         subprocess.run(["./prepare_data.sh"], shell=True, cwd=self.raw_dir)
 
     def load_meta(self) -> "PLDI2020Dataset":
-        self.__idx = set(self.__idx)
+        self._idx = set(self._idx)
         if os.path.exists(self.indexes_path):
             indexes_path = RichPath.create(self.indexes_path)
             indexes_set = indexes_path.read_by_file_suffix()
-            self.__idx = indexes_set
-        self.__idx = list(self.__idx)
-        self.__len = len(self.__idx)
+            self._idx = indexes_set
+        self._idx = list(self._idx)
+        self._len = len(self._idx)
 
         return self
 
@@ -104,7 +108,7 @@ class PLDI2020Dataset(Dataset):
 
     @property
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
-        return [f"data_{i:d}.pkl.gz" for i in self.__idx]
+        return [f"data_{i:d}.pkl.gz" for i in self._idx]
 
     @property
     def weights(self):
@@ -126,40 +130,24 @@ class PLDI2020Dataset(Dataset):
         for chunk in tqdm(read_data_chunks(paths), desc="Processing chunk"):
             for sample in tqdm(chunk, desc="Processing data"):
                 if "raw_data" not in sample and "supernodes" not in sample["raw_data"]:
-                    idx += 1
                     continue
-                data = sample_to_data(sample)
-                max_nodes, max_edges = 0, 0
-                should_split = False
+                graph = sample_to_nx(sample)
 
-                if self.pre_filter is not None:
-                    max_nodes, max_edges, should_split = self.pre_filter(data)
+                for graph_ in split_nx(graph, self._max_nodes, self._max_edges):
+                    data_ = nx_to_data(graph_)
+                    data_.idx = idx
+                    data_path = result_path.join(f"data_{idx:d}.pkl.gz")
+                    data_path.save_as_compressed_file(data_)
 
-                def save(d: Data, mapping: Optional[Dict[int, int]] = None):
-                    d.idx = idx
-                    try:
-                        sample_ = data_to_sample(d, mapping, sample["raw_data"]["supernodes"], sample.get("Provenance", "?"))
-                    except:
-                        logging.exception("transforming data[%d] to sample failed", idx)
-                        return False
-                    target_path = result_path.join(f"data_{idx:d}.pkl.gz")
-                    target_path.save_as_compressed_file(d)
+                    sample_ = nx_to_sample(graph_)
                     sample_path = result_path.join(f"sample_{idx:d}.pkl.gz")
                     sample_path.save_as_compressed_file(
                         sample_
                     )
-                    indexes.append(idx)
-                    targets, counts = torch.unique(d.y, return_counts=True)
-                    counter[targets] += counts
-                    return True
 
-                if should_split:
-                    for graph, mapping in split_graph(data, max_nodes, max_edges):
-                        if save(graph, mapping):
-                            idx += 1
-                else:
-                    if save(data):
-                        idx += 1
+                    indexes.append(idx)
+                    counter[data_.y.item()] += 1
+                    idx += 1
 
         indexes_path = RichPath.create(self.indexes_path)
         indexes_path.save_as_compressed_file(set(indexes))
@@ -169,12 +157,12 @@ class PLDI2020Dataset(Dataset):
         weights_path.save_as_compressed_file(weights)
 
     def len(self) -> int:
-        return self.__len
+        return self._len
 
     def get(self, idx: int) -> Data:
-        path = RichPath.create(self.processed_dir).join(f"data_{self.__idx[idx]:d}.pkl.gz")
+        path = RichPath.create(self.processed_dir).join(f"data_{self._idx[idx]:d}.pkl.gz")
         return path.read_by_file_suffix()
 
     def get_sample(self, idx: int) -> Dict[str, Any]:
-        path = RichPath.create(self.processed_dir).join(f"sample_{self.__idx[idx]:d}.pkl.gz")
+        path = RichPath.create(self.processed_dir).join(f"sample_{self._idx[idx]:d}.pkl.gz")
         return path.read_by_file_suffix()

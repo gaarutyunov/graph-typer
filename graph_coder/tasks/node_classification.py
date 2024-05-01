@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 
 import numpy as np
 from fairseq.data import NestedDictionaryDataset, NumSamplesDataset
-from fairseq.tasks import register_task, FairseqTask
+from fairseq.tasks import register_task
 
 from tokengt.data import DATASET_REGISTRY
 from tokengt.data.dataset import BatchedDataDataset, TargetDataset, EpochShuffleDataset
@@ -19,12 +19,12 @@ logger = logging.getLogger(__name__)
 @dataclass
 class NodeClassificationConfig(GraphPredictionConfig):
     dataset_root: str = field(
-        default="~/Projects/hse/data",
+        default="~/data",
         metadata={"help": "Dataset root folder"},
     )
 
     weights_path: str = field(
-        default="~/Projects/hse/data/processed-data/train/weights.pkl.gz",
+        default="~/data/processed-data/train/weights.pkl.gz",
         metadata={"help": "Weights path relative to the dataset root"},
     )
 

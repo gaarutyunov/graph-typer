@@ -1,133 +1,128 @@
-from collections import OrderedDict
-from typing import Dict, Any, Iterable, List, Optional, Tuple
+from functools import partial
+from typing import Dict, Any, Iterable, Tuple
 
-import networkx
+import networkx as nx
 import numpy as np
 import torch
 from torch_geometric.data import Data
 
 
-def sample_to_data(sample: Dict[str, Any]) -> Data:
-    edge_index = np.concatenate(sample["cg_edges"])
-    edge_attr = [np.full((len(e),), i) for i, e in enumerate(sample["cg_edges"])]
-    edge_attr = np.concatenate(edge_attr)
+def nx_to_sample(g: nx.Graph) -> Dict[str, Any]:
+    return g.graph
+
+
+def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
+    # initiate graph
+    edges = []
+    for v, edges_ in enumerate(sample['cg_edges']):
+        for (a, b) in edges_:
+            edges.append((a, b, {"type": v}))
+    g = nx.Graph()
+    g.add_edges_from(edges)
+
+    # add node type
+    nx.set_node_attributes(g, {k: v for k, v in enumerate(sample["cg_node_label_token_ids"])}, "type")
+
+    # add node label
     y = np.full((len(sample["cg_node_label_token_ids"]),), 0)
     y[sample["target_node_idxs"]] = sample["variable_target_class"]
+    nx.set_node_attributes(g, {k: v for k, v in enumerate(y)}, "label")
 
-    return Data(
-        y=torch.tensor(y.astype(np.int32), dtype=torch.long),
-        x=torch.tensor(sample["cg_node_label_token_ids"][..., None].astype(np.int32), dtype=torch.long),
-        edge_index=torch.tensor(np.transpose(edge_index).astype(np.int32), dtype=torch.long),
-        edge_attr=torch.tensor(edge_attr[..., None].astype(np.int32), dtype=torch.long),
-        target_node_idxs=torch.tensor(sample["target_node_idxs"].astype(np.int32), dtype=torch.long)
-    )
+    # add supernodes
+    g.graph["supernodes"] = sample["raw_data"]["supernodes"]
 
+    # add filename
+    g.graph["Provenance"] = sample.get("Provenance", "?")
 
-def data_to_sample(data: Data,
-                   mapping: Optional[Dict[int, int]] = None,
-                   supernodes: Optional[OrderedDict[str, Any]] = None,
-                   provenance: str = "?") -> Dict[str, Any]:
-    if mapping is None:
-        mapping = {}
-
-    new_supernodes = OrderedDict()
-
-    for node in data.target_node_idxs.tolist():
-        new_supernodes[str(node)] = supernodes[str(mapping.get(node, node))]
-
-    assert len(data.target_node_idxs) == len(new_supernodes)
-
-    return {
-        "Provenance": provenance,
-        "target_node_idxs": data.target_node_idxs.numpy().astype(np.uint16),
-        "variable_target_class": data.y[data.target_node_idxs].squeeze().numpy().astype(np.uint16),
-        "cg_node_label_token_ids": data.x.squeeze().numpy().astype(np.uint16),
-        "cg_edges": get_clusters(data.edge_index.t().numpy(), data.edge_attr.squeeze().numpy()),
-        "supernodes": new_supernodes
-    }
+    return g
 
 
-def get_clusters(X: np.ndarray, y: np.ndarray) -> List[np.ndarray]:
-    s = np.argsort(y)
-    return np.split(X[s], np.unique(y[s], return_index=True)[1][1:])
+def split_nx(g: nx.Graph, max_nodes: int, max_edges: int) -> Iterable[nx.Graph]:
+    if g.number_of_nodes() <= max_nodes and g.number_of_edges() <= max_edges:
+        yield from _split_nx(g)
+        return
 
-
-def split_graph(graph: Data, max_nodes: int, max_edges: int) -> Iterable[Tuple[Data, Dict[int, int]]]:
-    g = networkx.Graph()
-    g.add_edges_from(
-        (a, b, {"type": v}) for (a, b), v in zip(graph.edge_index.t().tolist(), graph.edge_attr.tolist())
-    )
-    networkx.set_node_attributes(
-        g,
-        {i: v for i, v in enumerate(graph.x.tolist())},
-        "type"
-    )
-
-    supernodes = graph.target_node_idxs.tolist()
-
-    for comp in networkx.connected_components(g):
-        if len(comp) <= max_nodes:
-            subgraph = g.subgraph(comp).copy()
-            data, mapping = nx_to_data(graph, subgraph, supernodes)
-            if data is not None:
-                yield data, mapping
+    for comp in nx.connected_components(g):
+        subgraph = g.subgraph(comp).copy()
+        if subgraph.number_of_nodes() <= max_nodes and subgraph.number_of_edges() <= max_edges:
+            yield from _split_nx(subgraph)
             continue
 
-        for node in supernodes:
-            if node not in comp:
+        for node, annotation in subgraph.graph["supernodes"].items():
+            node = int(node)
+            if node not in subgraph:
                 continue
             kwargs = {
-                "nodes_so_far": [node],
-                "edges_so_far": []
+                "nodes": [node],
+                "edges": 0
             }
 
-            while (len(kwargs["nodes_so_far"]) < max_nodes
-                   and len(kwargs["edges_so_far"]) < max_edges):
-                recurse_graph(g, node, max_nodes, max_edges, kwargs)
+            while (len(kwargs["nodes"]) < max_nodes
+                   and kwargs["edges"] < max_edges):
+                recurse_nx(g, node, max_nodes, max_edges, kwargs)
 
-            subgraph = g.subgraph(kwargs["nodes_so_far"]).copy()
-            data, mapping = nx_to_data(graph, subgraph, supernodes)
-            if data is not None:
-                yield data, mapping
+            new_subgraph = g.subgraph(kwargs["nodes"]).copy()
+
+            yield _relabel_nx(new_subgraph, node, annotation)
 
 
-def nx_to_data(graph: Data, subgraph: networkx.Graph, supernodes: List[int]) -> Tuple[Optional[Data], Dict[int, int]]:
-    mapping = dict(zip(subgraph.nodes(), range(subgraph.number_of_nodes())))
+def _split_nx(g: nx.Graph) -> Iterable[nx.Graph]:
+    for supernode, annotation in g.graph["supernodes"].items():
+        supernode = int(supernode)
 
-    target_node_idxs = []
-    for i, node in enumerate(supernodes):
-        if node in subgraph:
-            target_node_idxs.append(mapping[node])
+        yield _relabel_nx(g, supernode, annotation)
 
-    if len(target_node_idxs) == 0:
-        return None, mapping
 
-    new_subgraph = networkx.relabel_nodes(subgraph, mapping)
+def _relabel_nx(g: nx.Graph, supernode: int, annotation: Dict[str, Any]) -> nx.Graph:
+    counter = 0
 
+    def relabel(node: int, ctx: Dict[str, Any]) -> int:
+        if node == supernode:
+            return 0
+
+        ctx["counter"] += 1
+
+        return ctx["counter"]
+
+    new_graph = nx.relabel_nodes(g, partial(relabel, ctx={"counter": counter}))
+    new_graph.graph["supernodes"] = {
+        "0": annotation
+    }
+
+    return new_graph
+
+
+def recurse_nx(g: nx.Graph, node: int, max_nodes: int, max_edges: int, kwargs: Dict[str, Any]):
+    for neighbor in g.neighbors(node):
+        if (len(kwargs["nodes"]) >= max_nodes
+                or kwargs["edges"] >= max_edges):
+            break
+        if neighbor in kwargs["nodes"]:
+            continue
+        kwargs["nodes"].append(neighbor)
+        kwargs["edges"] += 1
+
+        recurse_nx(g, neighbor, max_nodes, max_edges, kwargs)
+
+
+def nx_to_data(graph: nx.Graph) -> Data:
     edges = []
     edges_data = []
 
-    for a, b, data in new_subgraph.edges.data("type"):
+    for a, b, data in graph.edges.data("type"):
         edges.append((a, b))
-        edges_data.append(data[0])
+        edges_data.append(data)
+
+    nodes = []
+
+    for node, data in sorted(graph.nodes(data=True), key=lambda x: x):
+        nodes.append([
+            data["type"], data["label"] if node != 0 else 0
+        ])
 
     return Data(
-        y=graph.y[list(subgraph.nodes)],
-        x=torch.tensor(list(networkx.get_node_attributes(new_subgraph, "type").values()), dtype=torch.long),
+        y=torch.tensor(graph.nodes[0]["label"], dtype=torch.long),
+        x=torch.tensor(nodes, dtype=torch.long),
         edge_index=torch.tensor(edges, dtype=torch.long).t(),
         edge_attr=torch.tensor(edges_data, dtype=torch.long),
-        target_node_idxs=torch.tensor(target_node_idxs, dtype=torch.long)
-    ), dict(zip(mapping.values(), mapping.keys()))
-
-
-def recurse_graph(g: networkx.Graph, node: int, max_nodes: int, max_edges: int, kwargs: Dict[str, Any]):
-    for neighbor in g.neighbors(node):
-        if (len(kwargs["nodes_so_far"]) >= max_nodes
-                or len(kwargs["edges_so_far"]) >= max_edges):
-            break
-        if neighbor in kwargs["nodes_so_far"]:
-            continue
-        kwargs["nodes_so_far"].append(neighbor)
-        kwargs["edges_so_far"].append((node, neighbor))
-
-        recurse_graph(g, neighbor, max_nodes, max_edges, kwargs)
+    )
