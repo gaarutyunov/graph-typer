@@ -33,12 +33,12 @@ chmod +x ./prepare.sh
 source ./prepare.sh
 
 # Train model
-chmod +x ./pldi2020-lap-performer.sh
+chmod +x ./train.sh
 
 DATASET_NAME=${1:-pldi2020}
 DATASET_ROOT=${2:-~/data}
-MODEL_ARCH=${3:-graph_coder_base}
-MODEL_NAME=${4:-pldi2020-gc-lap-performer-${MODEL_ARCH}}
+MODEL_ARCH=${3:-graph_coder_masked_base}
+MODEL_NAME=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 BATCH_SIZE=${5:-16}
 
 echo "Training..."
@@ -48,4 +48,4 @@ echo "Dataset root: $DATASET_ROOT"
 echo "Saving checkpoints to: ckpts/$MODEL_NAME"
 echo "Batch size: $BATCH_SIZE"
 
-source ./pldi2020-lap-performer.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE"
+source ./train.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE"

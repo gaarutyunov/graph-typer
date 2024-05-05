@@ -100,7 +100,7 @@ def collator(
     edge_num = [i.size(0) for i in edge_data]
     max_n = max(node_num)
 
-    y = torch.stack(ys, dim=0)  # [B,]
+    y = torch.cat(ys)  # [B,]
     edge_index = torch.cat(edge_index, dim=1)  # [2, sum(edge_num)]
     edge_data = torch.cat(edge_data) + 1  # [sum(edge_num), De], +1 for nn.Embedding with pad_index=0
     node_data = torch.cat(node_data) + 1  # [sum(node_num), Dn], +1 for nn.Embedding with pad_index=0

@@ -9,6 +9,7 @@ import numpy as np
 from fairseq.data import NestedDictionaryDataset, NumSamplesDataset
 from fairseq.tasks import register_task
 
+from graph_coder.data.masked_dataset import MaskedDataset
 from tokengt.data import DATASET_REGISTRY
 from tokengt.data.dataset import BatchedDataDataset, TargetDataset, EpochShuffleDataset
 from tokengt.tasks.graph_prediction import GraphPredictionConfig, GraphPredictionTask
@@ -80,6 +81,9 @@ class NodeClassificationTask(GraphPredictionTask):
             multi_hop_max_dist=self.cfg.multi_hop_max_dist,
             spatial_pos_max=self.cfg.spatial_pos_max
         )
+        masked_tokens = MaskedDataset(
+            batched_data,
+        )
 
         data_sizes = np.array([self.max_nodes()] * len(batched_data))
 
@@ -88,7 +92,7 @@ class NodeClassificationTask(GraphPredictionTask):
         dataset = NestedDictionaryDataset(
             {
                 "nsamples": NumSamplesDataset(),
-                "net_input": {"batched_data": batched_data},
+                "net_input": {"batched_data": batched_data, "masked_tokens": masked_tokens},
                 "target": target,
             },
             sizes=data_sizes,

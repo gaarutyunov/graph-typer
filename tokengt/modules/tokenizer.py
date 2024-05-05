@@ -35,7 +35,8 @@ class GraphFeatureTokenizer(nn.Module):
             lap_node_id_eig_dropout,
             type_id,
             hidden_dim,
-            n_layers
+            n_layers,
+            special_tokens: bool = False,
     ):
         super(GraphFeatureTokenizer, self).__init__()
 
@@ -43,8 +44,6 @@ class GraphFeatureTokenizer(nn.Module):
 
         self.atom_encoder = nn.Embedding(num_atoms, hidden_dim, padding_idx=0)
         self.edge_encoder = nn.Embedding(num_edges, hidden_dim, padding_idx=0)
-        self.graph_token = nn.Embedding(1, hidden_dim)
-        self.null_token = nn.Embedding(1, hidden_dim)  # this is optional
 
         self.rand_node_id = rand_node_id
         self.rand_node_id_dim = rand_node_id_dim
@@ -55,6 +54,11 @@ class GraphFeatureTokenizer(nn.Module):
         self.lap_node_id_sign_flip = lap_node_id_sign_flip
 
         self.type_id = type_id
+        self.special_tokens = special_tokens
+
+        if special_tokens:
+            self.graph_token = nn.Embedding(1, hidden_dim)
+            self.null_token = nn.Embedding(1, hidden_dim)  # this is optional
 
         if self.rand_node_id:
             self.rand_encoder = nn.Linear(2 * rand_node_id_dim, hidden_dim, bias=False)
@@ -207,6 +211,69 @@ class GraphFeatureTokenizer(nn.Module):
         padding_mask = torch.cat((special_token_mask, padding_mask), dim=1)  # [B, 2 + T]
         return padded_feature, padding_mask
 
+    def get_pos_embedding(self, batched_data, padded_index, device, dtype):
+        (
+            node_data,
+            in_degree,
+            out_degree,
+            node_num,
+            lap_eigvec,
+            lap_eigval,
+            edge_index,
+            edge_data,
+            edge_num
+        ) = (
+            batched_data["node_data"],
+            batched_data["in_degree"],
+            batched_data["out_degree"],
+            batched_data["node_num"],
+            batched_data["lap_eigvec"],
+            batched_data["lap_eigval"],
+            batched_data["edge_index"],
+            batched_data["edge_data"],
+            batched_data["edge_num"]
+        )
+
+        node_mask = self.get_node_mask(node_num, device)  # [B, max(n_node)]
+        embedding = 0
+
+        if self.rand_node_id:
+            rand_node_id = torch.rand(sum(node_num), self.rand_node_id_dim, device=device, dtype=dtype)  # [sum(n_node), D]
+            rand_node_id = F.normalize(rand_node_id, p=2, dim=1)
+            rand_index_embed = self.get_index_embed(rand_node_id, node_mask, padded_index)  # [B, T, 2D]
+            embedding += self.rand_encoder(rand_index_embed)
+
+        if self.orf_node_id:
+            b, max_n = len(node_num), max(node_num)
+            orf = gaussian_orthogonal_random_matrix_batched(
+                b, max_n, max_n, device=device, dtype=dtype
+            )  # [b, max(n_node), max(n_node)]
+            orf_node_id = orf[node_mask]  # [sum(n_node), max(n_node)]
+            if self.orf_node_id_dim > max_n:
+                orf_node_id = F.pad(orf_node_id, (0, self.orf_node_id_dim - max_n), value=float('0'))  # [sum(n_node), Do]
+            else:
+                orf_node_id = orf_node_id[..., :self.orf_node_id_dim]  # [sum(n_node), Do]
+            orf_node_id = F.normalize(orf_node_id, p=2, dim=1)
+            orf_index_embed = self.get_index_embed(orf_node_id, node_mask, padded_index)  # [B, T, 2Do]
+            embedding += self.orf_encoder(orf_index_embed)
+
+        if self.lap_node_id:
+            lap_dim = lap_eigvec.size(-1)
+            if self.lap_node_id_k > lap_dim:
+                eigvec = F.pad(lap_eigvec, (0, self.lap_node_id_k - lap_dim), value=float('0'))  # [sum(n_node), Dl]
+            else:
+                eigvec = lap_eigvec[:, :self.lap_node_id_k]  # [sum(n_node), Dl]
+            if self.lap_eig_dropout is not None:
+                eigvec = self.lap_eig_dropout(eigvec[..., None, None]).view(eigvec.size())
+            lap_node_id = self.handle_eigvec(eigvec, node_mask, self.lap_node_id_sign_flip)
+            lap_index_embed = self.get_index_embed(lap_node_id, node_mask, padded_index)  # [B, T, 2Dl]
+            embedding += self.lap_encoder(lap_index_embed)
+
+        if self.type_id:
+            embedding += self.get_type_embed(padded_index)
+
+        return embedding
+
     def forward(self, batched_data, perturb=None):
         (
             node_data,
@@ -238,44 +305,11 @@ class GraphFeatureTokenizer(nn.Module):
         padded_index, padded_feature, padding_mask, _, _ = self.get_batch(
             node_feature, edge_index, edge_feature, node_num, edge_num, perturb
         )
-        node_mask = self.get_node_mask(node_num, node_feature.device)  # [B, max(n_node)]
 
-        if self.rand_node_id:
-            rand_node_id = torch.rand(sum(node_num), self.rand_node_id_dim, device=device, dtype=dtype)  # [sum(n_node), D]
-            rand_node_id = F.normalize(rand_node_id, p=2, dim=1)
-            rand_index_embed = self.get_index_embed(rand_node_id, node_mask, padded_index)  # [B, T, 2D]
-            padded_feature = padded_feature + self.rand_encoder(rand_index_embed)
+        padded_feature += self.get_pos_embedding(batched_data, padded_index, device, dtype)
 
-        if self.orf_node_id:
-            b, max_n = len(node_num), max(node_num)
-            orf = gaussian_orthogonal_random_matrix_batched(
-                b, max_n, max_n, device=device, dtype=dtype
-            )  # [b, max(n_node), max(n_node)]
-            orf_node_id = orf[node_mask]  # [sum(n_node), max(n_node)]
-            if self.orf_node_id_dim > max_n:
-                orf_node_id = F.pad(orf_node_id, (0, self.orf_node_id_dim - max_n), value=float('0'))  # [sum(n_node), Do]
-            else:
-                orf_node_id = orf_node_id[..., :self.orf_node_id_dim]  # [sum(n_node), Do]
-            orf_node_id = F.normalize(orf_node_id, p=2, dim=1)
-            orf_index_embed = self.get_index_embed(orf_node_id, node_mask, padded_index)  # [B, T, 2Do]
-            padded_feature = padded_feature + self.orf_encoder(orf_index_embed)
-
-        if self.lap_node_id:
-            lap_dim = lap_eigvec.size(-1)
-            if self.lap_node_id_k > lap_dim:
-                eigvec = F.pad(lap_eigvec, (0, self.lap_node_id_k - lap_dim), value=float('0'))  # [sum(n_node), Dl]
-            else:
-                eigvec = lap_eigvec[:, :self.lap_node_id_k]  # [sum(n_node), Dl]
-            if self.lap_eig_dropout is not None:
-                eigvec = self.lap_eig_dropout(eigvec[..., None, None]).view(eigvec.size())
-            lap_node_id = self.handle_eigvec(eigvec, node_mask, self.lap_node_id_sign_flip)
-            lap_index_embed = self.get_index_embed(lap_node_id, node_mask, padded_index)  # [B, T, 2Dl]
-            padded_feature = padded_feature + self.lap_encoder(lap_index_embed)
-
-        if self.type_id:
-            padded_feature = padded_feature + self.get_type_embed(padded_index)
-
-        padded_feature, padding_mask = self.add_special_tokens(padded_feature, padding_mask)  # [B, 2+T, D], [B, 2+T]
+        if self.special_tokens:
+            padded_feature, padding_mask = self.add_special_tokens(padded_feature, padding_mask)  # [B, 2+T, D], [B, 2+T]
 
         padded_feature = padded_feature.masked_fill(padding_mask[..., None], float('0'))
         return padded_feature, padding_mask, padded_index  # [B, 2+T, D], [B, 2+T], [B, T, 2]

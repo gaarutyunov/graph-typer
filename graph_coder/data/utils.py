@@ -24,7 +24,7 @@ def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
     nx.set_node_attributes(g, {k: v for k, v in enumerate(sample["cg_node_label_token_ids"])}, "type")
 
     # add node label
-    y = np.full((len(sample["cg_node_label_token_ids"]),), 0)
+    y = np.full((len(sample["cg_node_label_token_ids"]),), -100)
     y[sample["target_node_idxs"]] = sample["variable_target_class"]
     nx.set_node_attributes(g, {k: v for k, v in enumerate(y)}, "label")
 
@@ -39,13 +39,13 @@ def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
 
 def split_nx(g: nx.Graph, max_nodes: int, max_edges: int) -> Iterable[nx.Graph]:
     if g.number_of_nodes() <= max_nodes and g.number_of_edges() <= max_edges:
-        yield from _split_nx(g)
+        yield _relabel_nx(g, g.graph["supernodes"])
         return
 
     for comp in nx.connected_components(g):
         subgraph = g.subgraph(comp).copy()
         if subgraph.number_of_nodes() <= max_nodes and subgraph.number_of_edges() <= max_edges:
-            yield from _split_nx(subgraph)
+            yield _relabel_nx(subgraph, subgraph.graph["supernodes"])
             continue
 
         for node, annotation in subgraph.graph["supernodes"].items():
@@ -63,31 +63,24 @@ def split_nx(g: nx.Graph, max_nodes: int, max_edges: int) -> Iterable[nx.Graph]:
 
             new_subgraph = g.subgraph(kwargs["nodes"]).copy()
 
-            yield _relabel_nx(new_subgraph, node, annotation)
+            yield _relabel_nx(new_subgraph, new_subgraph.graph["supernodes"])
 
 
-def _split_nx(g: nx.Graph) -> Iterable[nx.Graph]:
-    for supernode, annotation in g.graph["supernodes"].items():
-        supernode = int(supernode)
-
-        yield _relabel_nx(g, supernode, annotation)
-
-
-def _relabel_nx(g: nx.Graph, supernode: int, annotation: Dict[str, Any]) -> nx.Graph:
+def _relabel_nx(g: nx.Graph, annotations: Dict[str, Any]) -> nx.Graph:
     counter = 0
+    supernodes = {}
 
     def relabel(node: int, ctx: Dict[str, Any]) -> int:
-        if node == supernode:
-            return 0
-
+        counter_ = ctx["counter"]
         ctx["counter"] += 1
 
-        return ctx["counter"]
+        if str(node) in annotations:
+            supernodes[str(counter_)] = annotations[str(node)]
+
+        return counter_
 
     new_graph = nx.relabel_nodes(g, partial(relabel, ctx={"counter": counter}))
-    new_graph.graph["supernodes"] = {
-        "0": annotation
-    }
+    new_graph.graph["supernodes"] = supernodes
 
     return new_graph
 
@@ -114,14 +107,16 @@ def nx_to_data(graph: nx.Graph) -> Data:
         edges_data.append(data)
 
     nodes = []
+    labels = []
 
-    for node, data in sorted(graph.nodes(data=True), key=lambda x: x):
+    for node, data in graph.nodes(data=True):
         nodes.append([
-            data["type"], data["label"] if node != 0 else 0
+            data["type"], 0 if data["label"] == -100 else data["label"]
         ])
+        labels.append(data["label"])
 
     return Data(
-        y=torch.tensor(graph.nodes[0]["label"], dtype=torch.long),
+        y=torch.tensor(labels, dtype=torch.long),
         x=torch.tensor(nodes, dtype=torch.long),
         edge_index=torch.tensor(edges, dtype=torch.long).t(),
         edge_attr=torch.tensor(edges_data, dtype=torch.long),

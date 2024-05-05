@@ -1,10 +1,11 @@
 import os
 import subprocess
+from functools import lru_cache
 from typing import Union, List, Tuple, Optional, Callable, Literal, Dict, Any
 
 import networkx as nx
 import torch
-from dpu_utils.utils import RichPath
+from dpu_utils.utils import RichPath, ChunkWriter
 from torch_geometric.data import Dataset, Data, download_url
 from tqdm.auto import tqdm
 
@@ -50,7 +51,8 @@ class PLDI2020Dataset(Dataset):
                  prepare_file: str = __PREPARE__,
                  sizes: Dict[str, int] = None,
                  max_nodes: int = 1024,
-                 max_edges: int = 4096):
+                 max_edges: int = 4096,
+                 max_chunk_size: int = 1000):
         if isinstance(root, str):
             root = os.path.expanduser(os.path.normpath(root))
 
@@ -59,10 +61,13 @@ class PLDI2020Dataset(Dataset):
         self.num_classes = num_classes
         self._len = 0
         self._idx = range(self._len)
+        self._data_mapping = {}
+        self._sample_mapping = {}
         self._size = sizes.get(split, 1)
         self._max_nodes = max_nodes
         self._max_edges = max_edges
         self._weights = None
+        self._max_chunk_size = max_chunk_size
         self.load_meta()
         self.spec_file = spec_file
         self.prepare_file = prepare_file
@@ -78,9 +83,11 @@ class PLDI2020Dataset(Dataset):
     def load_meta(self) -> "PLDI2020Dataset":
         self._idx = set(self._idx)
         if os.path.exists(self.indexes_path):
-            indexes_path = RichPath.create(self.indexes_path)
-            indexes_set = indexes_path.read_by_file_suffix()
-            self._idx = indexes_set
+            self._idx = RichPath.create(self.indexes_path).read_by_file_suffix()
+        if os.path.exists(self.data_mapping_path):
+            self._data_mapping = RichPath.create(self.data_mapping_path).read_by_file_suffix()
+        if os.path.exists(self.sample_mapping_path):
+            self._sample_mapping = RichPath.create(self.sample_mapping_path).read_by_file_suffix()
         self._idx = list(self._idx)
         self._len = len(self._idx)
 
@@ -99,6 +106,14 @@ class PLDI2020Dataset(Dataset):
         return os.path.join(self.processed_dir, "weights.pkl.gz")
 
     @property
+    def data_mapping_path(self):
+        return os.path.join(self.processed_dir, "data_mapping.pkl.gz")
+
+    @property
+    def sample_mapping_path(self):
+        return os.path.join(self.processed_dir, "sample_mapping.pkl.gz")
+
+    @property
     def indexes_path(self):
         return os.path.join(self.processed_dir, "indexes.pkl.gz")
 
@@ -108,7 +123,7 @@ class PLDI2020Dataset(Dataset):
 
     @property
     def processed_file_names(self) -> Union[str, List[str], Tuple]:
-        return [f"data_{i:d}.pkl.gz" for i in self._idx]
+        return list({chunk for chunk, _ in self._data_mapping.values()})
 
     @property
     def weights(self):
@@ -127,42 +142,74 @@ class PLDI2020Dataset(Dataset):
 
         result_path = RichPath.create(self.processed_dir)
 
-        for chunk in tqdm(read_data_chunks(paths), desc="Processing chunk"):
-            for sample in tqdm(chunk, desc="Processing data"):
-                if "raw_data" not in sample and "supernodes" not in sample["raw_data"]:
-                    continue
-                graph = sample_to_nx(sample)
+        with ChunkWriter(result_path, file_prefix="data_chunk_", max_chunk_size=1000, file_suffix=".pkl.gz") as data_writer,\
+             ChunkWriter(result_path, file_prefix="sample_chunk_", max_chunk_size=1000, file_suffix=".pkl.gz") as sample_writer:
+            data_ctx = {
+                "counter": 0,
+                "chunk": 0,
+                "chunk_mapping": {}
+            }
+            sample_ctx = {
+                "counter": 0,
+                "chunk": 0,
+                "chunk_mapping": {}
+            }
 
-                for graph_ in split_nx(graph, self._max_nodes, self._max_edges):
-                    data_ = nx_to_data(graph_)
-                    data_.idx = idx
-                    data_path = result_path.join(f"data_{idx:d}.pkl.gz")
-                    data_path.save_as_compressed_file(data_)
+            def add(writer: ChunkWriter, file_prefix: str, _idx: int, _data: Any, ctx: Dict[str, Any]):
+                outfile = '%s%03d%s' % (file_prefix, ctx["chunk"], ".pkl.gz")
+                ctx["chunk_mapping"][_idx] = [outfile, ctx["counter"]]
+                writer.add(_data)
 
-                    sample_ = nx_to_sample(graph_)
-                    sample_path = result_path.join(f"sample_{idx:d}.pkl.gz")
-                    sample_path.save_as_compressed_file(
-                        sample_
-                    )
+                if ctx["counter"] < self._max_chunk_size:
+                    ctx["counter"] += 1
+                else:
+                    ctx["counter"] = 0
+                    ctx["chunk"] += 1
 
-                    indexes.append(idx)
-                    counter[data_.y.item()] += 1
-                    idx += 1
+            for chunk in tqdm(read_data_chunks(paths), desc="Processing chunk"):
+                for sample in tqdm(chunk, desc="Processing data"):
+                    if "raw_data" not in sample and "supernodes" not in sample["raw_data"]:
+                        continue
+                    graph = sample_to_nx(sample)
 
-        indexes_path = RichPath.create(self.indexes_path)
-        indexes_path.save_as_compressed_file(set(indexes))
-        self.load_meta()
-        weights = len(self) / (self.num_classes * counter)
-        weights_path = RichPath.create(self.weights_path)
-        weights_path.save_as_compressed_file(weights)
+                    for graph_ in split_nx(graph, self._max_nodes, self._max_edges):
+                        data_ = nx_to_data(graph_)
+                        data_.idx = idx
+                        add(data_writer, "data_chunk_", idx, data_, data_ctx)
+
+                        sample_ = nx_to_sample(graph_)
+                        add(sample_writer, "sample_chunk_", idx, sample_, sample_ctx)
+
+                        indexes.append(idx)
+                        targets, counts = torch.unique(data_.y, return_counts=True)
+                        counter[targets] += counts
+                        idx += 1
+
+            # save indexes
+            RichPath.create(self.indexes_path).save_as_compressed_file(set(indexes))
+            # load updated meta
+            self.load_meta()
+            # save weights
+            weights = len(self) / (self.num_classes * counter)
+            RichPath.create(self.weights_path).save_as_compressed_file(weights)
+            # save data chunk mappings
+            RichPath.create(self.data_mapping_path).save_as_compressed_file(data_ctx["chunk_mapping"])
+            # save sample chunk mappings
+            RichPath.create(self.sample_mapping_path).save_as_compressed_file(sample_ctx["chunk_mapping"])
 
     def len(self) -> int:
         return self._len
 
+    @lru_cache(maxsize=20)
+    def _get_chunk(self, path: str) -> List[Data | Dict[str, Any]]:
+        return RichPath.create(os.path.join(self.processed_dir, path)).read_by_file_suffix()
+
     def get(self, idx: int) -> Data:
-        path = RichPath.create(self.processed_dir).join(f"data_{self._idx[idx]:d}.pkl.gz")
-        return path.read_by_file_suffix()
+        chunk_path, chunk_idx = self._data_mapping[idx]
+        chunk = self._get_chunk(chunk_path)
+        return chunk[chunk_idx]
 
     def get_sample(self, idx: int) -> Dict[str, Any]:
-        path = RichPath.create(self.processed_dir).join(f"sample_{self._idx[idx]:d}.pkl.gz")
-        return path.read_by_file_suffix()
+        chunk_path, chunk_idx = self._sample_mapping[idx]
+        chunk = self._get_chunk(chunk_path)
+        return chunk[chunk_idx]

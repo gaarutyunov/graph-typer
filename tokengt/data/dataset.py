@@ -14,6 +14,7 @@ from .collator import collator
 from typing import Optional, Union
 from torch_geometric.data import Data as PYGDataset
 from .ogb_datasets import OGBDatasetLookupTable
+import torch.nn.functional as F
 
 
 class BatchedDataDataset(FairseqDataset):
@@ -58,7 +59,11 @@ class TargetDataset(FairseqDataset):
         return len(self.dataset)
 
     def collater(self, samples):
-        return torch.stack(samples, dim=0)
+        token_num = [i.size(0) for i in samples]
+        max_n = max(token_num)
+        targets = torch.cat([F.pad(i[None, ...], (0, max_n - i.size(0)), value=-100) for i in samples])
+
+        return targets
 
 
 class TokenGTDataset:
