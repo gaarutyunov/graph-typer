@@ -290,8 +290,8 @@ class TokenGTGraphEncoder(nn.Module):
         # x: B x T x C
 
         if masked_tokens is not None:
-            x.masked_fill_(masked_tokens[..., None], float('0'))
-            padding_mask.masked_fill_(masked_tokens, True)
+            x = x.masked_fill(masked_tokens[..., None], float('0'))
+            padding_mask = padding_mask.masked_fill(masked_tokens, True)
 
         if self.embed_scale is not None:
             x = x * self.embed_scale
