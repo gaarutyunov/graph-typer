@@ -285,13 +285,9 @@ class TokenGTGraphEncoder(nn.Module):
         if token_embeddings is not None:
             raise NotImplementedError
         else:
-            x, padding_mask, padded_index = self.graph_feature(batched_data, perturb)
+            x, padding_mask, padded_index = self.graph_feature(batched_data, perturb, masked_tokens=masked_tokens)
 
         # x: B x T x C
-
-        if masked_tokens is not None:
-            x = x.masked_fill(masked_tokens[..., None], float('0'))
-            padding_mask = padding_mask.masked_fill(masked_tokens, True)
 
         if self.embed_scale is not None:
             x = x * self.embed_scale

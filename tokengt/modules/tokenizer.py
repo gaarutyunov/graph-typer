@@ -1,4 +1,5 @@
 import math
+from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -76,8 +77,9 @@ class GraphFeatureTokenizer(nn.Module):
         self.apply(lambda module: init_params(module, n_layers=n_layers))
 
     @staticmethod
-    def get_batch(node_feature, edge_index, edge_feature, node_num, edge_num, perturb=None):
+    def get_batch(node_feature, edge_index, edge_feature, node_num, edge_num, perturb=None, masked_tokens: Optional[torch.Tensor] = None):
         """
+        :param masked_tokens:
         :param node_feature: Tensor([sum(node_num), D])
         :param edge_index: LongTensor([2, sum(edge_num)])
         :param edge_feature: Tensor([sum(edge_num), D])
@@ -121,6 +123,10 @@ class GraphFeatureTokenizer(nn.Module):
         padded_feature[padded_edge_mask, :] = edge_feature
 
         padding_mask = torch.greater_equal(token_pos, seq_len)  # [B, T]
+
+        if masked_tokens is not None:
+            padding_mask = padding_mask.masked_fill(masked_tokens, True)
+
         return padded_index, padded_feature, padding_mask, padded_node_mask, padded_edge_mask
 
     @staticmethod
@@ -274,7 +280,7 @@ class GraphFeatureTokenizer(nn.Module):
 
         return embedding
 
-    def forward(self, batched_data, perturb=None):
+    def forward(self, batched_data, perturb=None, masked_tokens: Optional[torch.Tensor] = None):
         (
             node_data,
             in_degree,
@@ -297,13 +303,26 @@ class GraphFeatureTokenizer(nn.Module):
             batched_data["edge_num"]
         )
 
+        if masked_tokens is not None:
+            seq_len = [n + e for n, e in zip(node_num, edge_num)]
+            b = len(seq_len)
+            max_len = max(seq_len)
+            device = edge_index.device
+            token_pos = torch.arange(max_len, device=device)[None, :].expand(b, max_len)  # [B, T]
+            node_num_ = torch.tensor(node_num, device=device, dtype=torch.long)[:, None]  # [B, 1]
+            padded_node_mask = torch.less(token_pos, node_num_)
+            node_mask = masked_tokens[padded_node_mask]
+            fill_mask = torch.zeros(node_data.shape, dtype=torch.bool, device=device)
+            fill_mask[:, -1] = node_mask
+            node_data = node_data.masked_fill(fill_mask, float('0'))
+
         node_feature = self.atom_encoder(node_data).sum(-2)  # [sum(n_node), D]
         edge_feature = self.edge_encoder(edge_data).sum(-2)  # [sum(n_edge), D]
         device = node_feature.device
         dtype = node_feature.dtype
 
         padded_index, padded_feature, padding_mask, _, _ = self.get_batch(
-            node_feature, edge_index, edge_feature, node_num, edge_num, perturb
+            node_feature, edge_index, edge_feature, node_num, edge_num, perturb, masked_tokens
         )
 
         padded_feature += self.get_pos_embedding(batched_data, padded_index, device, dtype)
