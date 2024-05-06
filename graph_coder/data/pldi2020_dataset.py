@@ -145,25 +145,25 @@ class PLDI2020Dataset(Dataset):
         with ChunkWriter(result_path, file_prefix="data_chunk_", max_chunk_size=1000, file_suffix=".pkl.gz") as data_writer,\
              ChunkWriter(result_path, file_prefix="sample_chunk_", max_chunk_size=1000, file_suffix=".pkl.gz") as sample_writer:
             data_ctx = {
-                "counter": 0,
+                "idx": 0,
                 "chunk": 0,
                 "chunk_mapping": {}
             }
             sample_ctx = {
-                "counter": 0,
+                "idx": 0,
                 "chunk": 0,
                 "chunk_mapping": {}
             }
 
             def add(writer: ChunkWriter, file_prefix: str, _idx: int, _data: Any, ctx: Dict[str, Any]):
                 outfile = '%s%03d%s' % (file_prefix, ctx["chunk"], ".pkl.gz")
-                ctx["chunk_mapping"][_idx] = [outfile, ctx["counter"]]
+                ctx["chunk_mapping"][_idx] = [outfile, ctx["idx"]]
                 writer.add(_data)
 
-                if ctx["counter"] < self._max_chunk_size:
-                    ctx["counter"] += 1
+                if ctx["idx"] < self._max_chunk_size - 1:
+                    ctx["idx"] += 1
                 else:
-                    ctx["counter"] = 0
+                    ctx["idx"] = 0
                     ctx["chunk"] += 1
 
             for chunk in tqdm(read_data_chunks(paths), desc="Processing chunk"):
