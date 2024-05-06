@@ -45,4 +45,4 @@ echo "Dataset name: $DATASET_NAME"
 echo "Dataset root: $DATASET_ROOT"
 echo "Using checkpoints from: ckpts/$CKPTS_PATH"
 
-source ./scripts/pldi2020-lap-performer-eval.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N"
+source ./scripts/eval.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N"
