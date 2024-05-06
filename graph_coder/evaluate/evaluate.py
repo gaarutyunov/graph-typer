@@ -71,12 +71,15 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     print(model)
 
     # load checkpoint
-    model_state = torch.load(checkpoint_path)["model"]
+    try:
+        model_state = torch.load(checkpoint_path)["model"]
 
-    model.load_state_dict(
-        model_state, strict=True, model_cfg=cfg.model
-    )
-    del model_state
+        model.load_state_dict(
+            model_state, strict=True, model_cfg=cfg.model
+        )
+        del model_state
+    except FileNotFoundError:
+        logger.info("no checkpoint found at %s", checkpoint_path)
 
     if torch.cuda.is_available():
         model.to(torch.cuda.current_device())
@@ -132,14 +135,21 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
-            raw_sample = dataset.defn["net_input.batched_data"].dataset.get_sample(sample["net_input"]["batched_data"]["idx"][0].item())
+            idx = sample["net_input"]["batched_data"]["idx"][0].item()
+
+            raw_sample = dataset.defn["net_input.batched_data"].dataset.get_sample(idx)
             if len(raw_sample['supernodes']) == 0:
                 continue
             provenance = raw_sample.get("Provenance", "?")
 
+            masked_tokens = sample["net_input"]["masked_tokens"].squeeze()
+            node_idxs = torch.arange(masked_tokens.size(-1))
+            node_idxs = node_idxs[masked_tokens]
             original_annotations = []
             for node_idx, annotation_data in raw_sample['supernodes'].items():
                 node_idx = int(node_idx)
+                if node_idx not in node_idxs:
+                    continue
 
                 annotation = annotation_data['annotation']
                 original_annotations.append((node_idx, annotation, annotation_data['name'], annotation_data['location'], annotation_data['type']))
