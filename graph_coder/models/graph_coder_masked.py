@@ -19,7 +19,7 @@ class GraphCoderMaskedModel(TokenGTModel):
     def build_model(cls, args, task):
         """Build a new model instance."""
         # make sure all arguments are present in older models
-        base_architecture(args)
+        graphcoder_base_architecture(args)
 
         if not safe_hasattr(args, "max_nodes"):
             args.max_nodes = args.tokens_per_sample
@@ -83,7 +83,7 @@ class GraphCoderAutoEncoder(TokenGTEncoder):
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
 
-        x = self.layer_norm(self.activation_fn(self.lm_head_transform_weight(x)))
+        x = self.layer_norm(x)
 
         return x, attn_dict
 
@@ -107,6 +107,7 @@ class GraphCoderAutoEncoder(TokenGTEncoder):
 
     def forward(self, batched_data, perturb=None, masked_tokens=None, **unused):
         x, attn_dict = self.encoder(batched_data, perturb=perturb, masked_tokens=masked_tokens)
+        x = self.lm_head_transform_weight(x)
         x, attn_dict = self.decoder(batched_data, x, padded_index=attn_dict["padded_index"], padding_mask=attn_dict["padding_mask"], masked_tokens=masked_tokens)
 
         # project back to size of vocabulary
