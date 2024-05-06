@@ -229,6 +229,7 @@ class TokenGTGraphDecoder(nn.Module):
         if masked_tokens is not None:
             x[~masked_tokens] += embedding[~masked_tokens]
             x[masked_tokens] = self.mask_token + embedding[masked_tokens]
+            padding_mask = padding_mask.masked_fill(masked_tokens, False)
 
         # account for padding while computing the representation
 
