@@ -90,7 +90,9 @@ class TokenGTGraphEncoder(nn.Module):
             q_noise: float = 0.0,
             qn_block_size: int = 8,
 
-            return_attention: bool = False
+            return_attention: bool = False,
+            special_tokens: bool = False,
+            masked: bool = False,
 
     ) -> None:
 
@@ -118,7 +120,9 @@ class TokenGTGraphEncoder(nn.Module):
             lap_node_id_eig_dropout=lap_node_id_eig_dropout,
             type_id=type_id,
             hidden_dim=embedding_dim,
-            n_layers=num_encoder_layers
+            n_layers=num_encoder_layers,
+            special_tokens=special_tokens,
+            masked=masked,
         )
         self.performer_finetune = performer_finetune
         self.embed_scale = embed_scale

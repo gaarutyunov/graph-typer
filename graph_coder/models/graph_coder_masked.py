@@ -19,7 +19,7 @@ class GraphCoderMaskedModel(TokenGTModel):
     def build_model(cls, args, task):
         """Build a new model instance."""
         # make sure all arguments are present in older models
-        graphcoder_base_architecture(args)
+        graph_coder_masked_base_architecture(args)
 
         if not safe_hasattr(args, "max_nodes"):
             args.max_nodes = args.tokens_per_sample
@@ -87,13 +87,11 @@ class GraphCoderAutoEncoder(TokenGTEncoder):
 
         return x, attn_dict
 
-    def decoder(self, batched_data, output, padded_index, padding_mask, masked_tokens=None, **unused):
+    def decoder(self, output, padded_index, padding_mask, masked_tokens=None):
         inner_states, _, attn_dict = self.graph_decoder(
-            batched_data,
             output,
             padded_index,
             padding_mask,
-            masked_tokens=masked_tokens
         )
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
@@ -108,7 +106,7 @@ class GraphCoderAutoEncoder(TokenGTEncoder):
     def forward(self, batched_data, perturb=None, masked_tokens=None, **unused):
         x, attn_dict = self.encoder(batched_data, perturb=perturb, masked_tokens=masked_tokens)
         x = self.lm_head_transform_weight(x)
-        x, attn_dict = self.decoder(batched_data, x, padded_index=attn_dict["padded_index"], padding_mask=attn_dict["padding_mask"], masked_tokens=masked_tokens)
+        x, attn_dict = self.decoder(x, padded_index=attn_dict["padded_index"], padding_mask=attn_dict["padding_mask"], masked_tokens=masked_tokens)
 
         # project back to size of vocabulary
         if self.share_input_output_embed and hasattr(
@@ -127,7 +125,7 @@ class GraphCoderAutoEncoder(TokenGTEncoder):
 
 
 @register_model_architecture("graph_coder_masked", "graph_coder_masked_base")
-def graphcoder_base_architecture(args):
+def graph_coder_masked_base_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
     args.encoder_layers = getattr(args, "encoder_layers", 6)
     args.decoder_layers = getattr(args, "decoder_layers", 6)
@@ -163,11 +161,23 @@ def graphcoder_base_architecture(args):
     args.performer_generalized_attention = getattr(args, "performer_generalized_attention", False)
 
     args.return_attention = getattr(args, "return_attention", False)
+    args.special_tokens = getattr(args, "special_tokens", False)
+    args.masked = getattr(args, "masked", True)
     base_architecture(args)
 
 
 @register_model_architecture("graph_coder_masked", "graph_coder_masked_ablated")
-def graphcoder_ablated_architecture(args):
+def graph_coder_masked_ablated_architecture(args):
     args.lap_node_id = getattr(args, "lap_node_id", False)
     args.type_id = getattr(args, "type_id", False)
-    graphcoder_base_architecture(args)
+    graph_coder_masked_base_architecture(args)
+
+
+@register_model_architecture("graph_coder_masked", "graph_coder_masked_tiny")
+def graph_coder_masked_tiny_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 64)
+    args.encoder_layers = getattr(args, "encoder_layers", 2)
+    args.decoder_layers = getattr(args, "decoder_layers", 2)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 4)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 128)
+    graph_coder_masked_base_architecture(args)

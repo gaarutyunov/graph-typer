@@ -213,7 +213,6 @@ class TokenGTGraphDecoder(nn.Module):
 
     def forward(
             self,
-            batched_data: Dict[str, torch.Tensor],
             x: torch.Tensor,
             padded_index: torch.Tensor,
             padding_mask: torch.Tensor,
@@ -221,15 +220,8 @@ class TokenGTGraphDecoder(nn.Module):
             last_state_only: bool = True,
             token_embeddings: Optional[torch.Tensor] = None,
             attn_mask: Optional[torch.Tensor] = None,
-            masked_tokens: Optional[torch.Tensor] = None,
     ):
         is_tpu = False
-        embedding = self.graph_feature.get_pos_embedding(batched_data, padded_index, x.device, x.dtype)
-
-        if masked_tokens is not None:
-            x[~masked_tokens] += embedding[~masked_tokens]
-            x[masked_tokens] = self.mask_token + embedding[masked_tokens]
-            padding_mask = padding_mask.masked_fill(masked_tokens, False)
 
         # account for padding while computing the representation
 

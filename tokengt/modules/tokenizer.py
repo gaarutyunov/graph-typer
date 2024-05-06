@@ -38,6 +38,7 @@ class GraphFeatureTokenizer(nn.Module):
             hidden_dim,
             n_layers,
             special_tokens: bool = False,
+            masked: bool = False
     ):
         super(GraphFeatureTokenizer, self).__init__()
 
@@ -56,6 +57,7 @@ class GraphFeatureTokenizer(nn.Module):
 
         self.type_id = type_id
         self.special_tokens = special_tokens
+        self.masked = masked
 
         if special_tokens:
             self.graph_token = nn.Embedding(1, hidden_dim)
@@ -73,6 +75,9 @@ class GraphFeatureTokenizer(nn.Module):
 
         if self.type_id:
             self.order_encoder = nn.Embedding(2, hidden_dim)
+
+        if self.masked:
+            self.mask_token = nn.Parameter(torch.ones(1))
 
         self.apply(lambda module: init_params(module, n_layers=n_layers))
 
@@ -123,9 +128,6 @@ class GraphFeatureTokenizer(nn.Module):
         padded_feature[padded_edge_mask, :] = edge_feature
 
         padding_mask = torch.greater_equal(token_pos, seq_len)  # [B, T]
-
-        if masked_tokens is not None:
-            padding_mask = padding_mask.masked_fill(masked_tokens, True)
 
         return padded_index, padded_feature, padding_mask, padded_node_mask, padded_edge_mask
 
@@ -314,7 +316,8 @@ class GraphFeatureTokenizer(nn.Module):
             node_mask = masked_tokens[padded_node_mask]
             fill_mask = torch.zeros(node_data.shape, dtype=torch.bool, device=device)
             fill_mask[:, -1] = node_mask
-            node_data = node_data.masked_fill(fill_mask, float('0'))
+            mask = self.mask_token.expand(*node_data[fill_mask].shape).to(node_data.dtype)
+            node_data[fill_mask] = mask
 
         node_feature = self.atom_encoder(node_data).sum(-2)  # [sum(n_node), D]
         edge_feature = self.edge_encoder(edge_data).sum(-2)  # [sum(n_edge), D]
