@@ -14,6 +14,7 @@ fairseq-train \
 --user-dir ../graph_coder \
 --num-workers 0 \
 --distributed-port=$PORT \
+--nprocs-per-node=2 \
 --ddp-backend=fully_sharded \
 --cpu-offload \
 --dataset-name $DATASET_NAME \
