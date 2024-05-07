@@ -41,7 +41,6 @@ DATASET_ROOT=${2:-~/data}
 MODEL_ARCH=${3:-graph_coder_masked_base}
 MODEL_NAME=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 BATCH_SIZE=${5:-16}
-PORT=${6:-12345}
 
 echo "Training..."
 echo "Model arch: $MODEL_ARCH"
@@ -49,6 +48,5 @@ echo "Dataset name: $DATASET_NAME"
 echo "Dataset root: $DATASET_ROOT"
 echo "Saving checkpoints to: ckpts/$MODEL_NAME"
 echo "Batch size: $BATCH_SIZE"
-echo "Distributed port: $PORT"
 
-source ./train-d.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE" "$PORT"
+source ./train-d.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE"
