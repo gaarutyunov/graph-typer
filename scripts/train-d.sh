@@ -13,6 +13,7 @@ fairseq-train \
 --dataset-root "$DATASET_ROOT" \
 --user-dir ../graph_coder \
 --num-workers 0 \
+--nproc_per_node=2 \
 --distributed-port=$PORT \
 --ddp-backend=fully_sharded \
 --cpu-offload \
