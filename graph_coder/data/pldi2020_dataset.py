@@ -36,7 +36,7 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train"):
         },
         max_nodes=cfg.max_nodes,
         max_edges=cfg.max_edges,
-    )
+    ).load_meta()
 
 
 class PLDI2020Dataset(Dataset):
@@ -95,7 +95,12 @@ class PLDI2020Dataset(Dataset):
 
     @property
     def raw_dir(self) -> str:
-        return os.path.join(self.root, 'tensorised-data', self.split)
+        d = os.path.join(self.root, 'tensorised-data', self.split)
+        
+        if not os.path.exists(d):
+            d = os.path.join(self.root, 'tensorized-data', self.split)
+
+        return d
 
     @property
     def processed_dir(self) -> str:

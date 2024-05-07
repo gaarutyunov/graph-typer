@@ -18,4 +18,4 @@ def pldi2020_small(cfg, split: Literal["train", "test", "valid"] = "train"):
         },
         max_nodes=cfg.max_nodes,
         max_edges=cfg.max_edges,
-    )
+    ).load_meta()
