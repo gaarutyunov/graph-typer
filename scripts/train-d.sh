@@ -9,8 +9,7 @@ CKPTS_PATH=$4
 BATCH_SIZE=$5
 PORT=$6
 
-export TORCH_DISTRIBUTED_DEBUG=DETAIL
-export TORCH_SHOW_CPP_STACKTRACES=1
+export NCCL_SOCKET_IFNAME=eth
 
 fairseq-train \
 --dataset-root "$DATASET_ROOT" \
