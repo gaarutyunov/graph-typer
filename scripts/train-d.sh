@@ -14,6 +14,7 @@ fairseq-train \
 --user-dir ../graph_coder \
 --num-workers 0 \
 --distributed-port=$PORT \
+--ddp-backend=legacy_ddp \
 --dataset-name $DATASET_NAME \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
