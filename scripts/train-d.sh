@@ -8,8 +8,6 @@ MODEL_ARCH=$3
 CKPTS_PATH=$4
 BATCH_SIZE=$5
 
-export NCCL_SOCKET_IFNAME=eth
-
 fairseq-train \
 --dataset-root "$DATASET_ROOT" \
 --user-dir ../graph_coder \
