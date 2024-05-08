@@ -14,6 +14,12 @@ class GraphCoderMaskedModel(TokenGTModel):
 
         return targets[sample["net_input"]["masked_tokens"]]
 
+    @staticmethod
+    def add_args(parser):
+        super().add_args(parser)
+        parser.add_argument("--masked", type=bool, default=True, help="Randomly mask tokens")
+        parser.add_argument("--special-tokens", type=bool, default=False, help="Use special tokens")
+
 
 def graph_coder_masked_base_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
