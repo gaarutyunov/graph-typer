@@ -24,4 +24,5 @@ PYTHONPATH=. python -m graph_coder.data \
 --dataset-root "$DATASET_ROOT" \
 --split "$SPLIT" \
 --max-nodes "$MAX_NODES" \
---max-edges "$MAX_EDGES"
+--max-edges "$MAX_EDGES" \
+--num-classes 10000
