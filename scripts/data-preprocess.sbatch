@@ -5,7 +5,7 @@
 #SBATCH --time=3-0:00               # Максимальное время выполнения
 #SBATCH --ntasks=1                   # Количество MPI процессов
 #SBATCH --nodes=1                    # Требуемое кол-во узлов
-#SBATCH --cpus-per-task=4            # Требуемое кол-во CPU
+#SBATCH --cpus-per-task=20            # Требуемое кол-во CPU
 
 DATASET_ROOT=${1:-~/data}
 

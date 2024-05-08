@@ -95,12 +95,7 @@ class PLDI2020Dataset(Dataset):
 
     @property
     def raw_dir(self) -> str:
-        d = os.path.join(self.root, 'tensorised-data', self.split)
-        
-        if not os.path.exists(d):
-            d = os.path.join(self.root, 'tensorized-data', self.split)
-
-        return d
+        return os.path.join(self.root, 'tensorised-data', self.split)
 
     @property
     def processed_dir(self) -> str:
