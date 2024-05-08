@@ -10,4 +10,4 @@
 DATASET_ROOT=${1:-~/data}
 
 module load singularity/3.9.0
-singularity exec --bind "$DATASET_ROOT":/usr/data --writable scripts/typilus-env_latest.sif /usr/src/datasetbuilder/scripts/process_data.sh
+singularity exec --bind "$DATASET_ROOT":/usr/data --writable scripts/typilus-env_latest.sif /usr/src/datasetbuilder/scripts/tensorise_data.sh
