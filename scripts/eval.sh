@@ -7,6 +7,7 @@ DATASET_ROOT=$2
 MODEL_ARCH=$3
 CKPTS_PATH=$4
 TOP_N=$5
+NUM_CLASSES=$6
 
 PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 --split test \
@@ -25,7 +26,7 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 --performer-feature-redraw-interval 100 \
 --stochastic-depth \
 --prenorm \
---num-classes 10000 \
+--num-classes "$NUM_CLASSES" \
 --attention-dropout 0.0 --act-dropout 0.1 --dropout 0.0 \
 --optimizer adam --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.1 \
 --lr-scheduler polynomial_decay --power 1 --warmup-updates 60000 --total-num-update 1000000 \

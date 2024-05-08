@@ -24,7 +24,7 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --nodes=1
 #SBATCH --cpus-per-gpu=1
-#SBATCH --time=1-0:0
+#SBATCH --time=3-0:0
 
 # Load modules
 chmod +x ./scripts/prepare.sh
@@ -38,11 +38,13 @@ DATASET_ROOT=${2:-~/data}
 MODEL_ARCH=${3:-graph_coder_masked_base}
 CKPTS_PATH=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 TOP_N=${5:-1}
+NUM_CLASSES=${6:-10000}
 
 echo "Evaluating Top-$TOP_N..."
 echo "Model arch: $MODEL_ARCH"
 echo "Dataset name: $DATASET_NAME"
 echo "Dataset root: $DATASET_ROOT"
 echo "Using checkpoints from: ckpts/$CKPTS_PATH"
+echo "Num classes: $NUM_CLASSES"
 
-source ./scripts/eval.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N"
+source ./scripts/eval.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N" "$NUM_CLASSES"
