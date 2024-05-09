@@ -1,0 +1,21 @@
+Graph Transformers is a novel architecture that has been developing in the past few years.
+They have been applied for several tasks, mostly in the field of molecule generation, node classification and node feature regression~\cite{kim_pure_2022,kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
+Apart from models with alterations to Transformer base architecture~\cite{ying_transformers_2021, kreuzer_rethinking_2021}
+researchers have recently developed simpler models~\cite{kim_pure_2022} that are compatible with many popular techniques developed for
+standard Transformers~\cite{choromanski_rethinking_2020}.
+
+AST and DFG have already been used with Transformers in the code generation and summarization tasks~\cite{wang_unified_2022,tang_ast-transformer_2021,sun_treegen_2020}.
+Moreover, graph representation of code has been used for the task of type inference in dynamically typed programming languages such as Python~\cite{allamanis2020typilus} and Javascript~\cite{schrouff_inferring_2019}.
+
+However, the power of Transformers and Graph Representation of code hasn't been combined yet to solve the task of
+type inference in source code.
+This is the gap our model aims to fill.
+The results of our model compared to previous work~\cite{mir_type4py_2021, allamanis2020typilus, pradel2020typewriter, jesse2021typebert, peng2023generative} are displayed in Table~\ref{tab:results}.
+
+\begin{table}
+    \centering
+    \caption{Quantitative evaluation of models measuring their ability to
+    predict ground truth type annotations.}
+    \label{tab:results}
+    \input{result}
+\end{table}

@@ -1,0 +1,61 @@
+\subsection{Dataset}\label{subsec:dataset}
+
+To train and test the model we gathered 600 Python repositories from GitHub containing type annotations from Typilus~\cite{allamanis2020typilus}.
+We clone these repositories and utilize pytype for static analysis, augmenting the corpus with inferred type annotations.
+The top 175 most downloaded libraries are added to the Python environment for type inference.
+Through deduplication, we remove over 133,000 near code duplicates to prevent bias.
+
+The resulting dataset comprises 118,440 files with 5,997,459 symbols, of which 252,470 have non-Any non-None type annotations.
+The annotations exhibit diversity with a heavy-tailed distribution, where the top 10 types cover half of the dataset, primarily including str, bool, and int.
+Only 158 types have over 100 annotations, while the majority of types are used fewer than 100 times each, forming 32\% of the dataset.
+This distribution underscores the importance of accurately predicting annotations, especially for less common types.
+The long-tail of types consists of user-defined and generic types with various type arguments.
+
+In addition to extracting graphs from source code AST, we split them by setting a maximum node and edges number in one graph.
+For this we prune the graphs around nodes that have annotations that are later used as targets during training and testing.
+Finally, we split the data into train-validation-test sets with proportions of 70-10-20, respectively.
+
+\subsection{Model Architecture}\label{subsec:model-architecture}
+
+We base our model architecture on TokenGT~\cite{kim_pure_2022}.
+The main advantage of this model is that standard Transformer architecture is not altered to support graph data.
+It allows us to use some advantages developed specifically for Transformers.
+For instance, Performer~\cite{choromanski_rethinking_2020} is used to accelerate training by using linear time as space complexity.
+
+The main idea of the authors is that combining appropriate token-wise embeddings and self-attention over the node and edge tokens
+is expressive enough to accurately encode graph structure to make graph and node-wise predictions.
+The embeddings in the model are composed of orthonormal node identifiers, namely Laplacian eigenvectors obtained from
+eigendecomposition of graph Laplacian matrix.
+In addition, type identifiers are used to encode type of tokens (nodes or edges).
+
+\begin{figure*}
+    \resizebox{\textwidth}{!}{\input{model.tikz}}
+    \caption{GraphTyper Architecture}
+    \label{fig:model}
+\end{figure*}
+
+In our model we use node and edge types extracted from code as token features.
+Node ground truth annotations are added to the features and randomly masked during training.
+As loss, weighted cross entropy is used due to the imbalance of the dataset.
+The overall architecture of the model is displayed at Figure~\ref{fig:model}.
+We develop two types of Transformers: Masked Transformer Encoder-only Model and Masked Transformer Encoder-Decoder Model.
+
+\subsubsection{Masked Transformer Encoder-only Model}
+
+Predicting type annotations in graph domain is a node classification task.
+However, since we are using a Pure Transformer with graphs represented as sequence of tokens, the task can be reduced to token classification.
+In the Natural Language Processing (NLP) domain this is a very common task, also known as Named Entity Recognition (NER).
+
+Encoder-only architecture has been widely used for the NER task, namely BERT is one of the most popular models~\cite{liu2021nerbert,Darji_2023}.
+We adapt similar architecture by randomly masking type annotations.
+We then apply a classifier head to the output of TokenGT~\cite{kim_pure_2022} to get logits of type annotations.
+
+\subsubsection{Masked Transformer Encoder-Decoder Model}
+
+In addition, we develop an Encoder-Decoder model architecture, inspired by GMAE~\cite{zhang2022graph}.
+However, instead of masking the entire nodes as in the mentioned paper, we only mask features corresponding to type annotations
+same as with Encoder-only Model.
+
+Masked model architecture is very versatile and the pretrained model can be later easily fine-tuned for other tasks,
+similar to the approaches from the NLP-domain~\cite{liu2021nerbert}.
+For example, error~\cite{bieber2022static} and vulnerability~\cite{sun2023exploring} data can be added to the code graph to detect and fix them~\cite{nguyen_regvd_2021,li_vuldeepecker_2018,cao_bgnn4vd_2021,li_sysevr_2021,russell_automated_2018}.

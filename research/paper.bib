@@ -674,20 +674,6 @@
 	file = {Snapshot:/Users/germanarutunov/Zotero/storage/E9SB3EL6/8614145.html:text/html},
 }
 
-@online{noauthor_180101681_nodate,
-	title = {[1801.01681] {VulDeePecker}: A Deep Learning-Based System for Vulnerability Detection},
-	url = {https://arxiv.org/abs/1801.01681},
-	urldate = {2022-03-09},
-	file = {[1801.01681] VulDeePecker\: A Deep Learning-Based System for Vulnerability Detection:/Users/germanarutunov/Zotero/storage/4Z5NDCF3/1801.html:text/html},
-}
-
-@online{noauthor_sysevr_nodate,
-	title = {{SySeVR}: A Framework for Using Deep Learning to Detect Software Vulnerabilities {\textbar} {IEEE} Journals \& Magazine {\textbar} {IEEE} Xplore},
-	url = {https://ieeexplore.ieee.org/abstract/document/9321538?casa_token=4ufWfbN8GAsAAAAA:JjS9Lyf7jRZLb85EqaRrj1lO9FX2q0EsLnwlZBqsFjisRTJtm0Ma6n7-YG4sVX2O4YfjAw8HnQ4},
-	urldate = {2022-03-09},
-	file = {SySeVR\: A Framework for Using Deep Learning to Detect Software Vulnerabilities | IEEE Journals & Magazine | IEEE Xplore:/Users/germanarutunov/Zotero/storage/XT6T9CL2/9321538.html:text/html},
-}
-
 @article{li_sysevr_2021,
 	title = {{SySeVR}: A Framework for Using Deep Learning to Detect Software Vulnerabilities},
 	issn = {1941-0018},
@@ -3137,22 +3123,6 @@ In the second part of this thesis deep learning and uncertainty estimation appro
 	file = {arXiv Fulltext PDF:/Users/germanarutunov/Zotero/storage/HU46SND4/Wang et al. - 2022 - Unified Abstract Syntax Tree Representation Learni.pdf:application/pdf;arXiv.org Snapshot:/Users/germanarutunov/Zotero/storage/6E2SQH2M/2205.html:text/html},
 }
 
-@misc{kim_pure_2022-1,
-	title = {Pure Transformers are Powerful Graph Learners},
-	url = {http://arxiv.org/abs/2207.02505},
-	doi = {10.48550/arXiv.2207.02505},
-	abstract = {We show that standard Transformers without graph-specific modifications can lead to promising results in graph learning both in theory and practice. Given a graph, we simply treat all nodes and edges as independent tokens, augment them with token embeddings, and feed them to a Transformer. With an appropriate choice of token embeddings, we prove that this approach is theoretically at least as expressive as an invariant graph network (2-{IGN}) composed of equivariant linear layers, which is already more expressive than all message-passing Graph Neural Networks ({GNN}). When trained on a large-scale graph dataset ({PCQM}4Mv2), our method coined Tokenized Graph Transformer ({TokenGT}) achieves significantly better results compared to {GNN} baselines and competitive results compared to Transformer variants with sophisticated graph-specific inductive bias. Our implementation is available at https://github.com/jw9730/tokengt.},
-	number = {{arXiv}:2207.02505},
-	publisher = {{arXiv}},
-	author = {Kim, Jinwoo and Nguyen, Tien Dat and Min, Seonwoo and Cho, Sungjun and Lee, Moontae and Lee, Honglak and Hong, Seunghoon},
-	urldate = {2022-11-04},
-	date = {2022-10-22},
-	eprinttype = {arxiv},
-	eprint = {2207.02505 [cs]},
-	keywords = {Computer Science - Machine Learning, Computer Science - Artificial Intelligence},
-	file = {arXiv Fulltext PDF:/Users/germanarutunov/Zotero/storage/NYRT8ZSU/Kim et al. - 2022 - Pure Transformers are Powerful Graph Learners.pdf:application/pdf;arXiv.org Snapshot:/Users/germanarutunov/Zotero/storage/V6IA69P6/2207.html:text/html},
-}
-
 @misc{choromanski_rethinking_2020,
 	title = {Rethinking Attention with Performers},
 	author = {Choromanski, Krzysztof and Likhosherstov, Valerii and Dohan, David and Song, Xingyou and Gane, Andreea and Sarlos, Tamas and Hawkins, Peter and Davis, Jared and Mohiuddin, Afroz and Kaiser, Lukasz and Belanger, David and Colwell, Lucy and Weller, Adrian},
@@ -3196,4 +3166,77 @@ In the second part of this thesis deep learning and uncertainty estimation appro
 	keywords = {type annotations, Machine learning models of code},
 	location = {Virtual Event, USA},
 	series = {ESEC/FSE 2020}
+}
+
+@misc{peng2023generative,
+	title={Generative Type Inference for Python},
+	author={Yun Peng and Chaozheng Wang and Wenxuan Wang and Cuiyun Gao and Michael R. Lyu},
+	year={2023},
+	eprint={2307.09163},
+	archivePrefix={arXiv},
+	primaryClass={cs.SE}
+}
+
+@inproceedings{jesse2021typebert,
+	author = {Jesse, Kevin and Devanbu, Premkumar T. and Ahmed, Toufique},
+	title = {Learning type annotation: is big data enough?},
+	year = {2021},
+	isbn = {9781450385626},
+	publisher = {Association for Computing Machinery},
+	address = {New York, NY, USA},
+	url = {https://doi.org/10.1145/3468264.3473135},
+	doi = {10.1145/3468264.3473135},
+	abstract = {TypeScript is a widely used optionally-typed language where developers can adopt “pay as you go” typing: they can add types as desired, and benefit from static typing. The “type annotation tax” or manual effort required to annotate new or existing TypeScript can be reduced by a variety of automatic methods. Probabilistic machine-learning (ML) approaches work quite well. ML approaches use different inductive biases, ranging from simple token sequences to complex graphical neural network (GNN) models capturing syntax and semantic relations. More sophisticated inductive biases are hand-engineered to exploit the formal nature of software. Rather than deploying fancy inductive biases for code, can we just use “big data” to learn natural patterns relevant to typing? We find evidence suggesting that this is the case. We present TypeBert, demonstrating that even with simple token-sequence inductive bias used in BERT-style models and enough data, type-annotation performance of the most sophisticated models can be surpassed.},
+	booktitle = {Proceedings of the 29th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+	pages = {1483–1486},
+	numpages = {4},
+	keywords = {transfer learning, deep learning, TypeScript, Type inference},
+	location = {Athens, Greece},
+	series = {ESEC/FSE 2021}
+}
+
+@misc{liu2021nerbert,
+	title={NER-BERT: A Pre-trained Model for Low-Resource Entity Tagging},
+	author={Zihan Liu and Feijun Jiang and Yuxiang Hu and Chen Shi and Pascale Fung},
+	year={2021},
+	eprint={2112.00405},
+	archivePrefix={arXiv},
+	primaryClass={cs.CL}
+}
+
+@inproceedings{Darji_2023,
+	title={German BERT Model for Legal Named Entity Recognition},
+	url={http://dx.doi.org/10.5220/0011749400003393},
+	DOI={10.5220/0011749400003393},
+	booktitle={Proceedings of the 15th International Conference on Agents and Artificial Intelligence},
+	publisher={SCITEPRESS - Science and Technology Publications},
+	author={Darji, Harshil and Mitrović, Jelena and Granitzer, Michael},
+	year={2023}
+}
+
+@misc{zhang2022graph,
+	title={Graph Masked Autoencoders with Transformers},
+	author={Sixiao Zhang and Hongxu Chen and Haoran Yang and Xiangguo Sun and Philip S. Yu and Guandong Xu},
+	year={2022},
+	eprint={2202.08391},
+	archivePrefix={arXiv},
+	primaryClass={cs.LG}
+}
+
+@misc{sun2023exploring,
+	title={Exploring Security Commits in Python},
+	author={Shiyu Sun and Shu Wang and Xinda Wang and Yunlong Xing and Elisa Zhang and Kun Sun},
+	year={2023},
+	eprint={2307.11853},
+	archivePrefix={arXiv},
+	primaryClass={cs.CR}
+}
+
+@misc{bieber2022static,
+	title={Static Prediction of Runtime Errors by Learning to Execute Programs with External Resource Descriptions},
+	author={David Bieber and Rishab Goel and Daniel Zheng and Hugo Larochelle and Daniel Tarlow},
+	year={2022},
+	eprint={2203.03771},
+	archivePrefix={arXiv},
+	primaryClass={cs.LG}
 }

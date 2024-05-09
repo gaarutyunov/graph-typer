@@ -6,6 +6,9 @@
 \usepackage{amsfonts}
 \usepackage{amsmath}
 \usepackage{booktabs, multirow}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,backgrounds,scopes,decorations.pathreplacing,shapes.geometric}
 \newcommand{\bibliofont}{\footnotesize}
 \renewcommand\IEEEkeywordsname{Keywords}
 \renewcommand\arraystretch{1.5}
@@ -41,29 +44,7 @@
 \maketitle
 
 \section{Introduction}\label{sec:introduction}
-
-Application of Transformers yet again has managed to break the deadlock: this time in the task of code generation~\cite{hendrycks_measuring_2021,chen_evaluating_2021,li_competition-level_nodate,nijkamp_conversational_2022}.
-Nevertheless, the versatile Transformer architecture has displayed good results on several benchmarks,
-in the recent work~\cite{xu_systematic_2022} it was shown that increasing the size of the model doesn't result in a better performance.
-Moreover, it is evident that context matters a lot to produce a working code.
-However, it is not feasible to relentlessly increase the length of context sequence in a Transformer.
-Therefore, a different approach is needed to boost the efficiency in the task of code synthesis~\cite{arutyunov_big_2022}.
-
-First of all, an expressive code representation has to be selected.
-Several ways including token-based, structured and graph-based approaches have been reviewed~\cite{sm_avdoshin_code_2022}.
-For instance, graph representation using abstract syntax tree (AST), data-flow graph (DFG) and control-flow graph (CFG)
-yield good results in such tasks as variable misuse detection and correction~\cite{allamanis_learning_2017}.
-Such graph representation can capture an extensive amount of information about the programs code.
-
-Secondly, a versatile model architecture that supports learning on graphs must be used.
-Multiple models such as RNN~\cite{white_deep_2016}, LSTM~\cite{wei_supervised_2017} and CNN~\cite{mou_convolutional_2016} with flattened graphs have been used.
-However, graph-aware model architecture is more suitable for the graph representation of code.
-For this reason, Graph Neural Networks (GNN) are a more reasonable choice of architecture,
-namely message-passing neural networks~\cite{allamanis_learning_2017}.
-
-Nonetheless, in this work we aim to make the most from both: the advantages of Transformer architecture and graph representation of code.
-For instance, we will use Transformer architecture optimizations~\cite{choromanski_rethinking_2020} and graph code representation created from AST.
-To make this possible we will use Pure Transformers~\cite{kim_pure_2022} instead of models that have some architectural alterations to support graph structure~\cite{kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
+\input{introduction}
 
 \section{Problem Statement}\label{sec:problem-statement}
 
@@ -80,103 +61,13 @@ To test the model we use two metrics from the Typilus paper~\cite{allamanis2020t
 \end{description}
 
 \section{Previous Work}\label{sec:previous-work}
-
-Graph Transformers is a novel architecture that has been developing in the past few years.
-They have been applied for several tasks, mostly in the field of molecule generation, node classification and node feature regression~\cite{kim_pure_2022,kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
-Apart from models with alterations to Transformer base architecture~\cite{ying_transformers_2021, kreuzer_rethinking_2021}
-researchers have recently developed simpler models~\cite{kim_pure_2022} that are compatible with many popular techniques developed for
-standard Transformers~\cite{choromanski_rethinking_2020}.
-
-AST and DFG have already been used with Transformers in the code generation and summarization tasks~\cite{wang_unified_2022,tang_ast-transformer_2021,sun_treegen_2020}.
-Moreover, graph representation of code has been used for the task of type inference in dynamically typed programming languages such as Python~\cite{allamanis2020typilus} and Javascript~\cite{schrouff_inferring_2019}.
-
-However, the power of Transformers and Graph Representation of code hasn't been combined yet to solve the task of
-type inference in source code.
-This is the gap our model aims to fill.
-The results of our model compared to previous work~\cite{mir_type4py_2021, allamanis2020typilus, pradel2020typewriter} are displayed in Table~\ref{tab:results}.
-
-\begin{table}
-    \centering
-    \caption{Quantitative evaluation of models measuring their ability to
-    predict ground truth type annotations.}
-    \label{tab:results}
-    \input{{result.tex}}
-\end{table}
+\input{previous-work}
 
 \section{Proposed Solution}\label{sec:proposed-solution}
-
-\subsection{Dataset}\label{subsec:dataset}
-
-To train and test the model we gathered 600 Python repositories from GitHub containing type annotations from Typilus~\cite{allamanis2020typilus}.
-We clone these repositories and utilize pytype for static analysis, augmenting the corpus with inferred type annotations.
-The top 175 most downloaded libraries are added to the Python environment for type inference.
-Through deduplication, we remove over 133,000 near code duplicates to prevent bias.
-
-The resulting dataset comprises 118,440 files with 5,997,459 symbols, of which 252,470 have non-Any non-None type annotations.
-The annotations exhibit diversity with a heavy-tailed distribution, where the top 10 types cover half of the dataset, primarily including str, bool, and int.
-Only 158 types have over 100 annotations, while the majority of types are used fewer than 100 times each, forming 32\% of the dataset.
-This distribution underscores the importance of accurately predicting annotations, especially for less common types.
-The long-tail of types consists of user-defined and generic types with various type arguments.
-
-In addition to extracting graphs from source code AST, we split them by setting a maximum node and edges number in one graph.
-For this we prune the graphs around nodes that have annotations that are later used as targets during training and testing.
-Finally, we split the data into train-validation-test sets with proportions of 70-10-20, respectively.
-
-\subsection{Model Architecture}\label{subsec:model-architecture}
-
-We base our model architecture on TokenGT~\cite{kim_pure_2022}.
-The main advantage of this model is that standard Transformer architecture is not altered to support graph data.
-It allows us to use some advantages developed specifically for Transformers.
-For instance, Performer~\cite{choromanski_rethinking_2020} is used to accelerate training by reducing asymptotic cost to
-$\mathcal{O}(n+m)$.
-
-The main idea of the authors is that combining appropriate token-wise embeddings and self-attention over the node and edge tokens
-is expressive enough to accurately encode graph structure to make graph and node-wise predictions.
-The embeddings in the model are composed of orthonormal node identifiers, namely Laplacian eigenvectors obtained from
-eigendecomposition of graph Laplacian matrix.
-In addition, type identifiers are used to encode type of tokens (nodes or edges).
-
-In our model we use AST node and edge types as token features.
-Node ground truth annotations are used as targets to train the model.
-As loss, cross entropy with weights is used due to the imbalance of the dataset.
+\input{proposed-solution}
 
 \section{Experiments and Ablation Results}\label{sec:experiment-results-and-ablation}
-
-To select the final model architecture we test different models by:
-
-\begin{enumerate}
-    \item Increasing the number of layers and attention heads (Big)
-    \item Increasing the dimension of hidden layers (Deep)
-    \item Testing different context length, i.e.\ maximum number of nodes in graph (512 vs 1024)
-    \item Validated the necessity of node and type identifiers that encode graph structure (Ablated)
-\end{enumerate}
-
-For our experiments and ablation analysis we train and test the models on one sample repository.
-To test the models we calculate Top-n predictions similar to the previous work~\cite{mir_type4py_2021}.
-Each model is trained on dataset preprocessed to contain maximum 512 and 1024 nodes in a graph.
-Table~\ref{tab:ablation} depicts the results of the experiments and ablation.
-As we can see, both models that increase the number of parameters, Big and Deep, also increase the predictive power of the model.
-
-As for the context length, our findings are aligned with the conclusions from previous work~\cite{arutyunov_big_2022}:
-longer context increases the performance of the model.
-However, the AST representation of source code is very bloated and even having a lot of nodes in the graph might not capture
-enough useful information to make quality predictions.
-Thus, in future research we will be working on finding a better and more compact graph representation of code.
-
-Finally, our ablation analysis demonstrates that indeed the graph structure embeddings play key role in model quality.
-By removing them from the model we are left with a simple Transformer that makes predictions only based on AST nodes and edges types.
-
-Therefore, in the resulting model we increase the number of layers, attention heads, as well as the dimension of the hidden layers.
-In addition, we preprocess the complete dataset to have 1024 nodes in graph at most.
-Finally, we add the node and type identifiers from the TokenGT paper~\cite{kim_pure_2022}.
-The resulting model has 441 million parameters: 12 encoder layers, 16 attention heads, 2048 hidden dimension and 4096 feed-forward layer dimension.
-
-\begin{table}
-    \centering
-    \caption{Expirement results of Top-n predictions for different model variants.}
-    \label{tab:ablation}
-    \input{{ablation.tex}}
-\end{table}
+\input{experiments}
 
 \section{Future Work}\label{sec:future-work}
 
