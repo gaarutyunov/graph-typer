@@ -17,8 +17,8 @@ class GraphCoderMaskedModel(TokenGTModel):
     @staticmethod
     def add_args(parser):
         super().add_args(parser)
-        parser.add_argument("--masked", type=bool, default=True, help="Randomly mask tokens")
-        parser.add_argument("--special-tokens", type=bool, default=False, help="Use special tokens")
+        parser.add_argument("--masked", type=bool, help="Randomly mask tokens")
+        parser.add_argument("--special-tokens", type=bool, help="Use special tokens")
 
 
 def graph_coder_masked_base_architecture(args):
