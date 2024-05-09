@@ -38,7 +38,7 @@ DATASET_ROOT=${2:-~/data}
 MODEL_ARCH=${3:-graph_coder_masked_base}
 CKPTS_PATH=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 TOP_N=${5:-1}
-NUM_CLASSES=${6:-10000}
+NUM_CLASSES=${6:-1000}
 
 echo "Evaluating Top-$TOP_N..."
 echo "Model arch: $MODEL_ARCH"

@@ -40,7 +40,7 @@ DATASET_ROOT=${2:-~/data}
 MODEL_ARCH=${3:-graph_coder_masked_base}
 MODEL_NAME=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 BATCH_SIZE=${5:-16}
-NUM_CLASSES=${6:-10000}
+NUM_CLASSES=${6:-1000}
 
 echo "Training..."
 echo "Model arch: $MODEL_ARCH"

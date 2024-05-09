@@ -12,12 +12,14 @@ DATASET_ROOT=${2:-~/data}
 SPLIT=${3:-train}
 MAX_NODES=${4:-512}
 MAX_EDGES=${5:-2048}
+NUM_CLASSES=${6:-1000}
 
 echo "Processing dataset $DATASET_NAME"
 echo "Root: $DATASET_ROOT"
 echo "Split: $SPLIT"
 echo "Max nodes: $MAX_NODES"
 echo "Max edges: $MAX_EDGES"
+echo "Num classes: $NUM_CLASSES"
 
 PYTHONPATH=. python -m graph_coder.data \
 --dataset-name "$DATASET_NAME" \
@@ -25,4 +27,4 @@ PYTHONPATH=. python -m graph_coder.data \
 --split "$SPLIT" \
 --max-nodes "$MAX_NODES" \
 --max-edges "$MAX_EDGES" \
---num-classes 10000
+--num-classes "$NUM_CLASSES"
