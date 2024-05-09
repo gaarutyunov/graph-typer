@@ -40,7 +40,7 @@ class NodeClassificationConfig(GraphPredictionConfig):
     )
 
     num_atoms: int = field(
-        default=10000 + 1,
+        default=10000 + 512 + 2,
         metadata={"help": "number of atom types in the graph"},
     )
 
