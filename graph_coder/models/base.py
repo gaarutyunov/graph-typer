@@ -23,8 +23,7 @@ class GraphCoderMaskedModel(TokenGTModel):
 
 def graph_coder_masked_base_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 1024)
-    args.encoder_layers = getattr(args, "encoder_layers", 6)
-    args.decoder_layers = getattr(args, "decoder_layers", 6)
+    args.encoder_layers = getattr(args, "encoder_layers", 12)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 32)
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 2048)
     args.dropout = getattr(args, "dropout", 0.0)
@@ -65,13 +64,13 @@ def graph_coder_masked_base_architecture(args):
 def graph_coder_masked_ablated_architecture(args):
     args.lap_node_id = getattr(args, "lap_node_id", False)
     args.type_id = getattr(args, "type_id", False)
+    args.encoder_layers = getattr(args, "encoder_layers", 12)
     graph_coder_masked_base_architecture(args)
 
 
 def graph_coder_masked_tiny_architecture(args):
     args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 64)
     args.encoder_layers = getattr(args, "encoder_layers", 2)
-    args.decoder_layers = getattr(args, "decoder_layers", 2)
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 4)
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 128)
     graph_coder_masked_base_architecture(args)

@@ -72,13 +72,11 @@ class GraphCoderEncoder(TokenGTEncoder):
 
 @register_model_architecture("graph_coder_encoder", "graph_coder_encoder_base")
 def base_architecture(args):
-    args.encoder_layers = getattr(args, "encoder_layers", 12)
     graph_coder_masked_base_architecture(args)
 
 
 @register_model_architecture("graph_coder_encoder", "graph_coder_encoder_ablated")
 def ablated_architecture(args):
-    args.encoder_layers = getattr(args, "encoder_layers", 12)
     graph_coder_masked_ablated_architecture(args)
 
 

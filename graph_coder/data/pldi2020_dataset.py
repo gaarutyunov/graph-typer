@@ -30,9 +30,9 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train"):
         split=split,
         num_classes=cfg.num_classes,
         sizes={
-            "train": 59,
-            "valid": 8,
-            "test": 19
+            "train": 53,
+            "valid": 7,
+            "test": 17
         },
         max_nodes=cfg.max_nodes,
         max_edges=cfg.max_edges,

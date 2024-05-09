@@ -29,6 +29,11 @@ class GraphCoderEncoderDecoderModel(GraphCoderMaskedModel):
         encoder = GraphCoderEncoderDecoder(args)
         return cls(args, encoder)
 
+    @staticmethod
+    def add_args(parser):
+        parser.add_argument("--decoder-layers", type=int, help="Number of decoder layers")
+        GraphCoderMaskedModel.add_args(parser)
+
 
 class GraphCoderEncoderDecoder(TokenGTEncoder):
     def __init__(self, args):
@@ -118,14 +123,17 @@ class GraphCoderEncoderDecoder(TokenGTEncoder):
 
 @register_model_architecture("graph_coder_encoder_decoder", "graph_coder_encoder_decoder_base")
 def base_architecture(args):
+    args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_base_architecture(args)
 
 
 @register_model_architecture("graph_coder_encoder_decoder", "graph_coder_encoder_decoder_ablated")
 def ablated_architecture(args):
+    args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_ablated_architecture(args)
 
 
 @register_model_architecture("graph_coder_encoder_decoder", "graph_coder_encoder_decoder_tiny")
 def tiny_architecture(args):
+    args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_tiny_architecture(args)
