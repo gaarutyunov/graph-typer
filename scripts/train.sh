@@ -9,7 +9,7 @@ CKPTS_PATH=$4
 BATCH_SIZE=$5
 NUM_CLASSES=$6
 
-fairseq-train \
+CUDA_LAUNCH_BLOCKING=1 fairseq-train \
 --dataset-root "$DATASET_ROOT" \
 --user-dir ../graph_coder \
 --num-workers 0 \
