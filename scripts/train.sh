@@ -34,10 +34,8 @@ fairseq-train \
 --tensorboard-logdir ./tb/"$CKPTS_PATH" \
 --weights-path "$DATASET_ROOT"/processed-data/train/weights.pkl.gz \
 --no-epoch-checkpoints \
---validate-interval-updates 1000 \
 --nval 100 \
 --batch-size-valid 1 \
---save-interval-updates 1000 \
---keep-interval-updates 2 \
---patience 5 \
---clip-norm 1
+--save-interval-updates 3000 \
+--keep-interval-updates 1 \
+--patience 5
