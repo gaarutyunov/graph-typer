@@ -37,4 +37,5 @@ fairseq-train \
 --validate-interval-updates 1000 \
 --nval 100 \
 --batch-size-valid 1 \
+--save-interval-updates \
 --patience 5
