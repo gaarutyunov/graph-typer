@@ -36,4 +36,5 @@ fairseq-train \
 --no-epoch-checkpoints \
 --validate-interval-updates 1000 \
 --nval 100 \
+--batch-size-valid 1 \
 --patience 5
