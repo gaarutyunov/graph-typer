@@ -37,7 +37,8 @@ class GraphCoderEncoder(TokenGTEncoder):
         inner_states, _, attn_dict = self.graph_encoder(
             batched_data,
             perturb=perturb,
-            masked_tokens=masked_tokens
+            masked_tokens=masked_tokens,
+            return_embedding=True,
         )
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C

@@ -65,8 +65,6 @@ class TokenGTGraphDecoder(nn.Module):
         self.performer_finetune = performer_finetune
         self.embed_scale = embed_scale
         self.graph_feature = graph_feature
-        if masked:
-            self.mask_token = nn.Embedding(1, embedding_dim)
 
         if q_noise > 0:
             self.quant_noise = apply_quant_noise_(
@@ -227,7 +225,7 @@ class TokenGTGraphDecoder(nn.Module):
         is_tpu = False
 
         if masked_tokens is not None:
-            x[masked_tokens] = self.mask_token.weight.expand(*x[masked_tokens].size()) + token_embeddings[masked_tokens]
+            x[masked_tokens] = 0.0
 
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)

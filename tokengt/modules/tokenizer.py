@@ -312,7 +312,7 @@ class GraphFeatureTokenizer(nn.Module):
             node_mask = masked_tokens[padded_node_mask]
             fill_mask = torch.zeros(node_data.shape, dtype=torch.bool, device=device)
             fill_mask[:, -1] = node_mask
-            node_data[fill_mask] = 1
+            node_data[fill_mask] = 0
 
         node_feature = self.atom_encoder(node_data).sum(-2)  # [sum(n_node), D]
         edge_feature = self.edge_encoder(edge_data).sum(-2)  # [sum(n_edge), D]
