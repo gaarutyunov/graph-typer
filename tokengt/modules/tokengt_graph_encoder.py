@@ -125,6 +125,8 @@ class TokenGTGraphEncoder(nn.Module):
             masked=masked,
         )
 
+        self.masked = masked
+
         if masked:
             self.mask_token = nn.Embedding(1, embedding_dim)
 
@@ -297,7 +299,7 @@ class TokenGTGraphEncoder(nn.Module):
         else:
             x, embedding, padding_mask, padded_index = self.graph_feature(batched_data, perturb, masked_tokens=masked_tokens)
 
-        if masked_tokens is not None:
+        if self.masked and masked_tokens is not None:
             x[masked_tokens] += self.mask_token.weight.expand(*x[masked_tokens].size())
 
         # x: B x T x C
