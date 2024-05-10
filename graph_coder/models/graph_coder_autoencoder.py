@@ -133,13 +133,15 @@ class GraphCoderAutoencoder(TokenGTEncoder):
 
 @register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_base")
 def base_architecture(args):
-    args.decoder_layers = getattr(args, "decoder_layers", 2)
+    args.encoder_layers = getattr(args, "encoder_layers", 6)
+    args.decoder_layers = getattr(args, "decoder_layers", 6)
     graph_coder_masked_base_architecture(args)
 
 
 @register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_ablated")
 def ablated_architecture(args):
-    args.decoder_layers = getattr(args, "decoder_layers", 2)
+    args.decoder_layers = getattr(args, "encoder_layers", 6)
+    args.decoder_layers = getattr(args, "decoder_layers", 6)
     graph_coder_masked_ablated_architecture(args)
 
 
