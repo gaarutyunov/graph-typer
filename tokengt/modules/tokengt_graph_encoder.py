@@ -124,6 +124,10 @@ class TokenGTGraphEncoder(nn.Module):
             special_tokens=special_tokens,
             masked=masked,
         )
+
+        if masked:
+            self.mask_token = nn.Embedding(1, embedding_dim)
+
         self.performer_finetune = performer_finetune
         self.embed_scale = embed_scale
 
@@ -279,7 +283,9 @@ class TokenGTGraphEncoder(nn.Module):
             last_state_only: bool = True,
             token_embeddings: Optional[torch.Tensor] = None,
             attn_mask: Optional[torch.Tensor] = None,
-            masked_tokens: Optional[torch.Tensor] = None
+            masked_tokens: Optional[torch.Tensor] = None,
+            return_embedding: bool = True,
+            return_graph_rep: bool = False,
     ):
         is_tpu = False
 
@@ -289,7 +295,10 @@ class TokenGTGraphEncoder(nn.Module):
         if token_embeddings is not None:
             raise NotImplementedError
         else:
-            x, padding_mask, padded_index = self.graph_feature(batched_data, perturb, masked_tokens=masked_tokens)
+            x, embedding, padding_mask, padded_index = self.graph_feature(batched_data, perturb, masked_tokens=masked_tokens)
+
+        if masked_tokens is not None:
+            x[masked_tokens] = self.mask_token.weight.expand(*x[masked_tokens].size()) + embedding[masked_tokens]
 
         # x: B x T x C
 
@@ -324,12 +333,17 @@ class TokenGTGraphEncoder(nn.Module):
                 inner_states.append(x)
             attn_dict['maps'][i] = attn
 
-        graph_rep = x[0, :, :]
+        if return_embedding:
+            embedding_or_rep = embedding
+        elif return_graph_rep:
+            embedding_or_rep = x[0, :, :]
+        else:
+            embedding_or_rep = None
 
         if last_state_only:
             inner_states = [x]
 
         if self.traceable:
-            return torch.stack(inner_states), graph_rep, attn_dict
+            return torch.stack(inner_states), embedding_or_rep, attn_dict
         else:
-            return inner_states, graph_rep, attn_dict
+            return inner_states, embedding_or_rep, attn_dict

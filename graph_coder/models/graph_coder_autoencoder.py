@@ -13,8 +13,8 @@ from tokengt.modules import TokenGTGraphDecoder
 logger = logging.getLogger(__name__)
 
 
-@register_model("graph_coder_encoder_decoder")
-class GraphCoderEncoderDecoderModel(GraphCoderMaskedModel):
+@register_model("graph_coder_autoencoder")
+class GraphCoderAutoencoderModel(GraphCoderMaskedModel):
     @classmethod
     def build_model(cls, args, task):
         """Build a new model instance."""
@@ -26,7 +26,7 @@ class GraphCoderEncoderDecoderModel(GraphCoderMaskedModel):
 
         logger.info(args)
 
-        encoder = GraphCoderEncoderDecoder(args)
+        encoder = GraphCoderAutoencoder(args)
         return cls(args, encoder)
 
     @staticmethod
@@ -35,7 +35,7 @@ class GraphCoderEncoderDecoderModel(GraphCoderMaskedModel):
         GraphCoderMaskedModel.add_args(parser)
 
 
-class GraphCoderEncoderDecoder(TokenGTEncoder):
+class GraphCoderAutoencoder(TokenGTEncoder):
     def __init__(self, args):
         super().__init__(args)
         self.decoder_layer_norm = LayerNorm(args.encoder_embed_dim)
@@ -67,28 +67,32 @@ class GraphCoderEncoderDecoder(TokenGTEncoder):
             layernorm_style=layernorm_style,
             apply_graphormer_init=args.apply_graphormer_init,
             activation_fn=args.activation_fn,
-            return_attention=args.return_attention
+            return_attention=args.return_attention,
+            masked=args.masked
             # >
         )
 
     def encoder(self, batched_data, perturb=None, masked_tokens=None):
-        inner_states, _, attn_dict = self.graph_encoder(
+        inner_states, token_embeddings, attn_dict = self.graph_encoder(
             batched_data,
             perturb=perturb,
-            masked_tokens=masked_tokens
+            masked_tokens=masked_tokens,
+            return_embedding=True,
         )
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
 
         x = self.layer_norm(x)
 
-        return x, attn_dict
+        return x, token_embeddings, attn_dict
 
-    def decoder(self, output, padded_index, padding_mask, masked_tokens=None):
+    def decoder(self, output, padded_index, padding_mask, token_embeddings=None, masked_tokens=None):
         inner_states, _, attn_dict = self.graph_decoder(
             output,
             padded_index,
             padding_mask,
+            token_embeddings=token_embeddings,
+            masked_tokens=masked_tokens
         )
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
@@ -101,9 +105,15 @@ class GraphCoderEncoderDecoder(TokenGTEncoder):
         return x, attn_dict
 
     def forward(self, batched_data, perturb=None, masked_tokens=None, **unused):
-        x, attn_dict = self.encoder(batched_data, perturb=perturb, masked_tokens=masked_tokens)
+        x, token_embeddings, attn_dict = self.encoder(batched_data, perturb=perturb, masked_tokens=masked_tokens)
         x = self.lm_head_transform_weight(x)
-        x, attn_dict = self.decoder(x, padded_index=attn_dict["padded_index"], padding_mask=attn_dict["padding_mask"], masked_tokens=masked_tokens)
+        x, attn_dict = self.decoder(
+            x,
+            padded_index=attn_dict["padded_index"],
+            padding_mask=attn_dict["padding_mask"],
+            masked_tokens=masked_tokens,
+            token_embeddings=token_embeddings
+        )
 
         # project back to size of vocabulary
         if self.share_input_output_embed and hasattr(
@@ -121,19 +131,19 @@ class GraphCoderEncoderDecoder(TokenGTEncoder):
             return x
 
 
-@register_model_architecture("graph_coder_encoder_decoder", "graph_coder_encoder_decoder_base")
+@register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_base")
 def base_architecture(args):
     args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_base_architecture(args)
 
 
-@register_model_architecture("graph_coder_encoder_decoder", "graph_coder_encoder_decoder_ablated")
+@register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_ablated")
 def ablated_architecture(args):
     args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_ablated_architecture(args)
 
 
-@register_model_architecture("graph_coder_encoder_decoder", "graph_coder_encoder_decoder_tiny")
+@register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_tiny")
 def tiny_architecture(args):
     args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_tiny_architecture(args)
