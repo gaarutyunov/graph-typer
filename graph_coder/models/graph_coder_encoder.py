@@ -65,6 +65,9 @@ class GraphCoderEncoder(TokenGTEncoder):
         if self.lm_output_learned_bias is not None:
             x = x + self.lm_output_learned_bias
 
+        if masked_tokens is not None:
+            x = x[masked_tokens]
+
         if self.return_attention:
             return x, attn_dict
         else:
@@ -89,6 +92,7 @@ def ablated_architecture(args):
 
 @register_model_architecture("graph_coder_encoder", "graph_coder_encoder_tiny")
 def tiny_architecture(args):
+    args.masked = getattr(args, "masked", False)
     graph_coder_masked_tiny_architecture(args)
 
 

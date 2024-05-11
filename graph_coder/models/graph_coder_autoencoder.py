@@ -97,10 +97,7 @@ class GraphCoderAutoencoder(TokenGTEncoder):
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
 
-        if masked_tokens is not None:
-            x = self.decoder_layer_norm(x[masked_tokens])
-        else:
-            x = self.decoder_layer_norm(x)
+        x = self.decoder_layer_norm(x)
 
         return x, attn_dict
 
@@ -124,6 +121,9 @@ class GraphCoderAutoencoder(TokenGTEncoder):
             x = self.embed_out(x)
         if self.lm_output_learned_bias is not None:
             x = x + self.lm_output_learned_bias
+
+        if masked_tokens is not None:
+            x = x[masked_tokens]
 
         if self.return_attention:
             return x, attn_dict

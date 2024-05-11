@@ -26,7 +26,7 @@ fairseq-train \
 --num-classes "$NUM_CLASSES" \
 --attention-dropout 0.0 --act-dropout 0.1 --dropout 0.0 \
 --optimizer adam --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.1 \
---lr-scheduler polynomial_decay --power 1 --warmup-updates 1000 --total-num-update 1000000 \
+--lr-scheduler polynomial_decay --power 1 --warmup-updates 10000 --total-num-update 1000000 \
 --lr 2e-4 --end-learning-rate 1e-9 \
 --batch-size "$BATCH_SIZE" \
 --data-buffer-size 20 \
@@ -34,9 +34,8 @@ fairseq-train \
 --tensorboard-logdir ./tb/"$CKPTS_PATH" \
 --weights-path "$DATASET_ROOT"/processed-data/train/weights.pkl.gz \
 --no-epoch-checkpoints \
---validate-interval-updates 3000 \
+--validate-interval-updates 1000 \
 --nval 100 \
---batch-size-valid 1 \
---save-interval-updates 3000 \
+--save-interval-updates 1000 \
 --keep-interval-updates 1 \
 --patience 5
