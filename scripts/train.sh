@@ -13,7 +13,7 @@ fairseq-train \
 --dataset-root "$DATASET_ROOT" \
 --user-dir ../graph_coder \
 --num-workers 0 \
---ddp-backend=pytorch_ddp \
+--ddp-backend=no_c10d \
 --dataset-name $DATASET_NAME \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
