@@ -38,4 +38,5 @@ fairseq-train \
 --nval 100 \
 --save-interval-updates 1000 \
 --keep-interval-updates 1 \
---patience 5
+--patience 5 \
+--find-unused-parameters
