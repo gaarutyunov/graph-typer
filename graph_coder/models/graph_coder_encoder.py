@@ -43,12 +43,7 @@ class GraphCoderEncoder(TokenGTEncoder):
 
         x = inner_states[-1].transpose(0, 1)  # B x T x C
 
-        if masked_tokens is not None:
-            x = self.lm_head_transform_weight(x[masked_tokens])
-        else:
-            x = self.lm_head_transform_weight(x)
-
-        x = self.layer_norm(self.activation_fn(x))
+        x = self.layer_norm(self.activation_fn(self.lm_head_transform_weight(x)))
 
         return x, attn_dict
 
