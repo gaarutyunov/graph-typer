@@ -135,7 +135,7 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
             args.output_dir,
             file_prefix="prediction_",
             max_chunk_size=1000,
-            file_suffix=".jsonl.gz",
+            file_suffix=".pkl.gz",
         )
 
     # infer
