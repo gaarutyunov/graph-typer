@@ -30,7 +30,7 @@ In addition, type identifiers are used to encode types of tokens (nodes or edges
 
 \begin{figure*}
     \resizebox{\textwidth}{!}{\input{figures/model.tikz}}
-    \caption{GraphTyper Architecture}
+    \caption{GraphTyper Architecture. The source code is first transformed into AST graph, then type annotations are randomely masked. The graph is enriched by token type identifiers (node or edge) and orthonormal node identifiers obtained from eigendecomposition of Laplacian matrix. The resulting graph is fed through a Transformer Encoder to obtain type annotations for masked nodes.}
     \label{fig:model}
 \end{figure*}
 
