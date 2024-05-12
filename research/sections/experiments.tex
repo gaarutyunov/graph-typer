@@ -40,6 +40,7 @@ To validate the robustness of the Encoder-only Model, we also implement a Masked
 For this, we adapt the approach of Hou et. al~\cite{hou2022graphmae} for our model.
 We introduce a learnable mask token and a decoder based on the encoder layers.
 We reconstruct the type annotations by re-masking the target nodes before feeding them into the decoder.
+However, we do not observe as good results as with a simple Encoder-only model.
 
 \begin{table}
     \centering
