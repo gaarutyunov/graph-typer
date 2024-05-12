@@ -12,7 +12,7 @@ from fairseq.logging import metrics
 
 
 @register_criterion("cross_entropy_loss", dataclass=FairseqDataclass)
-class CrossEntropyCriterionLoss(CrossEntropyCriterion):
+class CrossEntropyLoss(CrossEntropyCriterion):
     def __init__(self, task):
         super().__init__(task, False)
 
@@ -44,7 +44,7 @@ class CrossEntropyCriterionLoss(CrossEntropyCriterion):
         loss_sum = sum(log.get("loss", 0) for log in logging_outputs)
         lm_loss_sum = sum(log.get("lm_loss", 0) for log in logging_outputs)
         ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
-        sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
+        sample_size = len(logging_outputs)
 
         # we divide by log(2) to convert the loss from base e to base 2
         metrics.log_scalar(
