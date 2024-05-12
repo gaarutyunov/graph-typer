@@ -48,7 +48,7 @@ class CrossEntropyLoss(CrossEntropyCriterion):
 
         # we divide by log(2) to convert the loss from base e to base 2
         metrics.log_scalar(
-            "loss", loss_sum / sample_size / math.log(2), sample_size, round=3
+            "loss", loss_sum / math.log(2), 1, round=3
         )
         metrics.log_scalar(
             "lm_loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3

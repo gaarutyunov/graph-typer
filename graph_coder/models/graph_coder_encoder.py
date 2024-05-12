@@ -73,11 +73,6 @@ def base_architecture(args):
     graph_coder_masked_base_architecture(args)
 
 
-@register_model_architecture("graph_coder_encoder", "graph_coder_encoder_not_masked")
-def not_masked_architecture(args):
-    graph_coder_masked_base_architecture(args)
-
-
 @register_model_architecture("graph_coder_encoder", "graph_coder_encoder_ablated")
 def ablated_architecture(args):
     graph_coder_masked_ablated_architecture(args)
