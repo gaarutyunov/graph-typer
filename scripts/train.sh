@@ -14,6 +14,7 @@ fairseq-train \
 --user-dir ../graph_coder \
 --num-workers 0 \
 --ddp-backend=pytorch_ddp \
+--distributed-port 1369 \
 --dataset-name $DATASET_NAME \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
