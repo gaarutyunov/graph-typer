@@ -1,0 +1,49 @@
+To select the final model architecture, we test different models.
+For our experiments and ablation analysis, we train and test the models using one sample repository.
+We also limit the number of types in the vocabulary to one hundred to speed up training and use less resources.
+To test the models, we calculate Top-n predictions similar to the previous work~\cite{mir_type4py_2021}.
+Table~\ref{tab:ablation} depicts the results of the experiments and ablation.
+
+\subsection{Validating the necessity of node and type identifiers that encode graph structure}\label{subsec:validating-the-necessity-of-node-and-type-identifiers-that-encode-graph-structure}
+
+First of all, we remove the node and type identifiers introduced by Kim et. Al~\cite{kim_pure_2022} our ablation analysis demonstrates that indeed, the graph structure embeddings play a key role in model quality.
+By removing them from the model, we are left with a simple Transformer that makes predictions only based on AST nodes and edges types without any information about graph structure.
+Such a model outputs the worst results among all the experiments.
+
+\subsection{Using the model without node type annotations}\label{subsec:using-the-model-without-node-type-annotations}
+
+In addition, we try to remove the type annotations from the model completely.
+This alteration turns our training into a masked NER task.
+Surprisingly, our model performs well in such conditions.
+This means that the selected graph representation of code contains a lot of necessary information to infer types.
+
+\subsection{Increasing the number of parameters}\label{subsec:increasing-the-number-of-parameters}
+
+As we can see, increasing the number of parameters also increases the predictive power of the model.
+However, increasing the parameters indefinitely is not very practical and requires a lot of computational resources~\cite{arutyunov_big_2022}.
+Therefore, we don't change the parameter number of the final model, so it remains compact.
+
+\subsection{Testing different context length}\label{subsec:testing-different-context-length}
+
+As for the context length, i.e., maximum number of nodes in graph (512 vs. 1024), our findings are aligned with the conclusions from previous work~\cite{arutyunov_big_2022}:
+longer context increases the performance of the model.
+However, the AST representation of source code is very bloated and even having a lot of nodes in the graph might not capture
+enough useful information to make quality predictions.
+In addition, increasing the context length drastically slows down the training process.
+Thus, in future research, we will be working on finding a better and more compact graph representation of code.
+
+\subsection{Testing different Transformer architectures}\label{subsec:testing-different-transformer-architectures-(encoder-only-vs-encoder-decoder)}
+
+Recently, Masked Graph Autoencoders have been applied for the tasks of link prediction and node classification~\cite{tan2022mgae},
+as well as feature reconstruction~\cite{zhang2022graph, hou2022graphmae}.
+To validate the robustness of the Encoder-only Model, we also implement a Masked Autoencoder Model.
+For this, we adapt the approach of Hou et. al~\cite{hou2022graphmae} for our model.
+We introduce a learnable mask token and a decoder based on the encoder layers.
+We reconstruct the type annotations by re-masking the target nodes before feeding them into the decoder.
+
+\begin{table}
+    \centering
+    \caption{Expirement results of Top-n predictions for different model variants.}
+    \label{tab:ablation}
+    \input{tables/ablation}
+\end{table}

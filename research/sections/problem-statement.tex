@@ -1,0 +1,28 @@
+In this work, we test the ability of Pure Transformers to add types to Python source code based on its graph structure.
+This task was selected as a starting point for future research due to its practical relevance.
+
+Firstly, dynamically typed languages, such as Python and JavaScript, have gained quite some traction during the last years~\cite{kaggle-survey-2021}.
+However, it doesn't mean they're easier~\cite{robillard2009what, robillard2011afield, zibran2011useful} or less error-prone than statically typed languages~\cite{alzahrani2018pythonvscplus}.
+Moreover, lack of type hints in libraries might lead to expensive errors in fields such as Data Science~\cite{reimann2023safeds}.
+
+There are some tools outside the neural networks domain that perform static type checking and inferencing type annotations~\cite{pyre, PyType}.
+Nonetheless, these utilities do not work without type hints in the source code of the dependencies, which is pretty common.
+To alleviate this, there are proposals about Domain-Specific Languages (DSL) for Data Science~\cite{reimann2023safeds}.
+However, it wouldn't work on existing code base and massive adoption is not very likely.
+
+On the other hand, absence of type hints is not a restriction for neural networks
+(see. Section~\ref{subsec:using-the-model-without-node-type-annotations}).
+In addition, they don't only find erroneous types in existing codebase~\cite{allamanis2020typilus}
+but can also be used during development to annotate code on the fly~\cite{mir_type4py_2021}.
+
+Most importantly, inferring types requires a model to learn a lot about the source code.
+Therefore, developing a model with versatile architecture to infer types allows it to be later applied for other tasks.
+
+\subsection{Metrics}\label{subsec:metrics}
+
+To test the model, we use two metrics from the Typilus paper~\cite{allamanis2020typilus}:
+
+\begin{description}
+    \item{Exact Match: Predicted and ground truth types match exactly.}
+    \item{Match up to Parametric Type: Exact match when ignoring all type parameters.}
+\end{description}

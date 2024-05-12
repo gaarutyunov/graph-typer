@@ -214,7 +214,7 @@ ei/.style={rounded,fill=RoyalBlue!50},
 
 % Transformer
 
-\node[fit=(nt1-1) (nt1-2) (nt2-1) (nt2-2) (nt3-1) (nt3-2) (nt4-1) (nt4-2) (nt5-1) (nt5-2) (nt6-1) (nt6-2) (nt7-1) (nt7-2) (nt8-1) (nt8-2),fill=Gray!20,rounded,draw,label=center:Transformer,above=20pt of vi-1,anchor=south west,xshift=-12pt] (transformer) {};
+\node[fit=(nt1-1) (nt1-2) (nt2-1) (nt2-2) (nt3-1) (nt3-2) (nt4-1) (nt4-2) (nt5-1) (nt5-2) (nt6-1) (nt6-2) (nt7-1) (nt7-2) (nt8-1) (nt8-2),fill=Gray!20,rounded,draw,label=center:Transformer Encoder + MLP,above=20pt of vi-1,anchor=south west,xshift=-12pt] (transformer) {};
 
 % Prediction
 

@@ -2,14 +2,14 @@ Application of Transformers yet again has managed to break the deadlock: this ti
 Nevertheless, the versatile Transformer architecture has displayed good results on several benchmarks,
 in the recent work~\cite{xu_systematic_2022} it was shown that increasing the size of the model doesn't result in a better performance.
 Moreover, it is evident that context matters a lot to produce a working code.
-However, it is not feasible to relentlessly increase the length of context sequence in a Transformer.
-Therefore, a different approach is needed to boost the efficiency in the task of code synthesis~\cite{arutyunov_big_2022}.
+However, it is not practical to relentlessly increase the length of context sequence in a Transformer.
+Therefore, a different approach is needed to boost the efficiency in machine programming tasks~\cite{arutyunov_big_2022}.
 
 First of all, an expressive code representation has to be selected.
-Several ways including token-based, structured and graph-based approaches have been reviewed~\cite{sm_avdoshin_code_2022}.
+Several ways, including token-based, structured and graph-based approaches, have been reviewed~\cite{sm_avdoshin_code_2022}.
 For instance, graph representation using abstract syntax tree (AST), data-flow graph (DFG) and control-flow graph (CFG)
 yield good results in such tasks as variable misuse detection and correction~\cite{allamanis_learning_2017}.
-Such graph representation can capture an extensive amount of information about the programs code.
+Such graph representation can capture an extensive amount of information about the program's code.
 
 Secondly, a versatile model architecture that supports learning on graphs must be used.
 Multiple models such as RNN~\cite{white_deep_2016}, LSTM~\cite{wei_supervised_2017} and CNN~\cite{mou_convolutional_2016} with flattened graphs have been used.
@@ -17,6 +17,6 @@ However, graph-aware model architecture is more suitable for the graph represent
 For this reason, Graph Neural Networks (GNN) are a more reasonable choice of architecture,
 namely message-passing neural networks~\cite{allamanis_learning_2017}.
 
-Nonetheless, in this work we aim to make the most from both: the advantages of Transformer architecture and graph representation of code.
-For instance, we will use Transformer architecture optimizations~\cite{choromanski_rethinking_2020} and graph code representation created from AST.
-To make this possible we will use Pure Transformers~\cite{kim_pure_2022} instead of models that have some architectural alterations to support graph structure~\cite{kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.
+Nonetheless, in this work we aim to make the most of both worlds: the advantages of Transformer architecture and graph representation of code.
+For instance, we will use Transformer architecture optimizations~\cite{choromanski_rethinking_2020} and graph code representation created from AST and DFG.
+To make this possible, we will use Pure Transformers~\cite{kim_pure_2022} instead of models that have some architectural alterations to support graph structure~\cite{kreuzer_rethinking_2021,dwivedi_generalization_2021,ying_transformers_2021}.

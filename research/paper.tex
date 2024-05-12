@@ -28,62 +28,47 @@
 
 \begin{abstract}
     Although software development is mostly a creative process, there are many scrutiny tasks.
-    As in other industries there is a trend for automation of routine work.
-    In many cases machine learning and neural networks have become a useful assistant in that matter.
-    Programming is not an exception: GitHub has stated that Copilot is already used to write up to 30\% code in the company.
-    Copilot is based on Codex, a Transformer model trained on code as sequence.
-    However, sequence is not a perfect representation for programming languages.
-    In this work we claim and demonstrate that by combining the advantages of Transformers
-    and graph representations of code it is possible to achieve very good results even with comparably small models.
+    As in other industries, there is a trend for automation of routine work.
+    In many cases, machine learning and neural networks have become a useful assistant in that matter.
+    Programming is not an exception:
+    GitHub has stated that Copilot is already used to write up to 30\% of code in the company.
+    Copilot is based on Codex, a Transformer model trained on code as a sequence.
+    However, a sequence is not a perfect representation for programming languages.
+    In this work, we claim and demonstrate that by combining the advantages of Transformers
+    and graph representations of code, it is possible to achieve excellent results even with comparably small models.
 \end{abstract}
 
 \begin{IEEEkeywords}
-    neural networks, Transformers, graphs, abstract syntax tree
+    Neural networks, Transformers, graphs, abstract syntax tree
 \end{IEEEkeywords}
 
 \maketitle
 
 \section{Introduction}\label{sec:introduction}
-\input{introduction}
+\input{sections/introduction}
 
 \section{Problem Statement}\label{sec:problem-statement}
-
-In this work we test the ability of Pure Transformers to add types to Python source code based on its graph structure.
-We compare the results with the models from previous work in Table~\ref{tab:results}~\cite{allamanis2020typilus}.
-
-\subsection{Metrics}\label{subsec:metrics}
-
-To test the model we use two metrics from the Typilus paper~\cite{allamanis2020typilus}:
-
-\begin{description}
-    \item{Exact Match: Predicted and ground truth types match exactly.}
-    \item{Match up to Parametric Type: Exact match when ignoring all type parameters.}
-\end{description}
+\input{sections/problem-statement}
 
 \section{Previous Work}\label{sec:previous-work}
-\input{previous-work}
+\input{sections/previous-work}
 
 \section{Proposed Solution}\label{sec:proposed-solution}
-\input{proposed-solution}
+\input{sections/proposed-solution}
 
 \section{Experiments and Ablation Results}\label{sec:experiment-results-and-ablation}
-\input{experiments}
+\input{sections/experiments}
+
+\section{Known Limitations}\label{sec:known-limitations}
+\input{sections/limitations-and-workarounds}
 
 \section{Future Work}\label{sec:future-work}
-
-In this work we explored the application of Graph Transformers for type inference.
-The versatile architecture of the proposed solution lets us explore other tasks.
-
-First, if a universal version of graph code representation is used the can train the model for multiple programming languages~\cite{wang_unified_2022}.
-Second, we can train the model using a technique similar to generative pretrained models~\cite{radford_language_2019,brown_language_2020} to generate code.
-Third, our model can be used to generate code summarization or docstring generation~\cite{barone_parallel_2017,liu_haconvgnn_2021}.
-Another useful task is to detect errors and generate fixes~\cite{bhatia_automated_2016,fujimoto_addressing_2018,marginean_sapfix_2019}.
-Finally, we can extend our model with information about changes to analyse them and propose refactoring possibilities~\cite{cabrera_lozoya_commit2vec_2021}.
+\input{sections/future-work}
 
 \section{Conclusion}\label{sec:conclusion}
 
 As for the conclusion, we were able to create a universal model based on TokenGT~\cite{kim_pure_2022} and code represented as graphs.
-One of the most important advantages of this model is that the code graph is used directly by the model.
+One of the most important advantages of this model is that it uses the code graph directly.
 Secondly, the model can be modified to fit other tasks, such as code generation and summarization, docstring generation, refactoring and many more.
 The code graph can also be extended by different features and node types, since the representation does not differ depending on graph structure.
 
