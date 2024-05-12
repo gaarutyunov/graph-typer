@@ -235,13 +235,13 @@ def main():
     parser.add_argument(
         "--output-predictions",
         type=bool,
-        action="save_true",
+        action="store_true",
         default=False,
     )
     parser.add_argument(
         "--no-output-predictions",
         type=bool,
-        action="save_false",
+        action="store_false",
         dest="output_predictions",
     )
     parser.add_argument(
