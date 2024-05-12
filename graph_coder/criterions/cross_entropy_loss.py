@@ -41,14 +41,12 @@ class CrossEntropyLoss(CrossEntropyCriterion):
     @staticmethod
     def reduce_metrics(logging_outputs) -> None:
         """Aggregate logging outputs from data parallel training."""
-        loss_sum = sum(log.get("loss", 0) for log in logging_outputs)
         lm_loss_sum = sum(log.get("lm_loss", 0) for log in logging_outputs)
         ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
-        sample_size = len(logging_outputs)
 
         # we divide by log(2) to convert the loss from base e to base 2
         metrics.log_scalar(
-            "loss", loss_sum / math.log(2), 1, round=3
+            "loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
         )
         metrics.log_scalar(
             "lm_loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
