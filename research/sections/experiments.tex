@@ -21,6 +21,7 @@ This means that the selected graph representation of code contains a lot of nece
 
 As we can see, increasing the number of parameters also increases the predictive power of the model.
 However, increasing the parameters indefinitely is not very practical and requires a lot of computational resources~\cite{arutyunov_big_2022}.
+Moreover, keeping the low number of parameters allows us to use longer context length (more node and edges in graph) during inference with same resource capabilities.
 Therefore, we don't change the parameter number of the final model, so it remains compact.
 
 \subsection{Testing different context length}\label{subsec:testing-different-context-length}

@@ -1,49 +1,57 @@
 import pathlib
+
+import numpy as np
 import pandas as pd
 import json
 #%%
 data = []
 
-for top_n in [1, 3, 5, 10]:
+for top_n in [1, 3, 5]:
     for model in [
-        "Ablated",
-        "Base",
-        "Deep",
-        "Big",
-        "Final"
+        "Ablated 512",
+        "Base 512",
+        "pldi2020_small-graph_coder_encoder_base",
+        "pldi2020-graph_coder_autoencoder_base-120524",
+        "Final 1024",
+        "Final 512"
     ]:
-        em = []
-        em_utpt = []
-        for i, ctx in enumerate([512, 1024]):
-            model_path = pathlib.Path(f"ckpts/{model} {ctx}")
-            top_n_path = model_path / f"result_top_{top_n}.json"
-            result = json.loads(top_n_path.read_text())
+        model_path = pathlib.Path(f"ckpts/{model}")
+        top_n_path = model_path / f"result_top_{top_n}.json"
+        result = json.loads(top_n_path.read_text())
 
-            exact_match = result["accuracy"]
-            exact_match_utpt = result["accuracy_up_to_parametric_type"]
-            em.append(exact_match)
-            em_utpt.append(exact_match_utpt)
-        em.extend(em_utpt)
-        data.append(em)
+        data.append([result["accuracy"], result["accuracy_up_to_parametric_type"]])
 #%%
 idx_itr = [
-    [f"Top-{f}" for f in [1, 3, 5, 10]],
+    [f"Top-{f}" for f in [1, 3, 5]],
     [
-        "Ablated (51 mln)",
-        "Base (51 mln)",
-        "Deep (214 mln)",
-        "Big (331 mln)",
-        "Final (432 mln)"
+        "Plane Transformer",
+        "+ Node \& Type Identifiers",
+        "+ Type Annotations",
+        "+ Decoder (Autoencoder)",
+        "or Longer Context",
+        "or More Parameters"
     ],
 ]
 idx = pd.MultiIndex.from_product(idx_itr, names=["Top-n", "Model"])
 
-col_iter = [["Exact", "Up to Parametric Type"], ["512", "1024"]]
-col = pd.MultiIndex.from_product(col_iter, names=["\% Match", "Context Length"])
-
-df = pd.DataFrame(data, index=idx, columns=col)
+df = pd.DataFrame(data, index=idx, columns=["Exact", "Up to Parametric Type"])
 #%%
-with open("../research/ablation.tex", mode="w") as f:
-    print((df * 100).to_latex(
-        float_format="{:.2f}".format,
+def highlight_max(data):
+    attr = "font-weight:bold;"
+
+    if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
+        is_max = data == data.max()
+        return [attr if v else '' for v in is_max]
+
+    is_max = data.groupby(level=0).transform('max') == data
+
+    return pd.DataFrame(np.where(is_max, attr, ''),
+                        index=data.index, columns=data.columns)
+
+
+with open("../research/tables/ablation.tex", mode="w") as f:
+    print((df * 100).style.apply(highlight_max, axis=None).format(precision=2).to_latex(
+        convert_css=True,
+        hrules=True,
+        clines="skip-last;data",
     ), file=f)
