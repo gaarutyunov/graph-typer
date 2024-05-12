@@ -12,7 +12,7 @@ for top_n in [1, 3, 5]:
         "Base 512",
         "pldi2020_small-graph_coder_encoder_base",
         "pldi2020-graph_coder_autoencoder_base-120524",
-        "Final 1024",
+        "pldi2020_small_1024-graph_coder_encoder_base",
         "pldi2020_small-graph_coder_encoder_big"
     ]:
         model_path = pathlib.Path(f"ckpts/{model}")
