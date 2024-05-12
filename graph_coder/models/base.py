@@ -77,3 +77,12 @@ def graph_coder_masked_tiny_architecture(args):
     args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 4)
     args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 128)
     graph_coder_masked_base_architecture(args)
+
+
+def graph_coder_masked_big_architecture(args):
+    args.encoder_embed_dim = getattr(args, "encoder_embed_dim", 2048)
+    args.encoder_layers = getattr(args, "encoder_layers", 16)
+    args.encoder_attention_heads = getattr(args, "encoder_attention_heads", 48)
+    args.encoder_ffn_embed_dim = getattr(args, "encoder_ffn_embed_dim", 2048)
+    args.lap_node_id_k = getattr(args, "lap_node_id_k", 24)
+    graph_coder_masked_base_architecture(args)

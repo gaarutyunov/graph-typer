@@ -5,7 +5,7 @@ from fairseq.utils import safe_hasattr
 from torch.nn import functional as F
 
 from graph_coder.models.base import GraphCoderMaskedModel, graph_coder_masked_base_architecture, \
-    graph_coder_masked_ablated_architecture, graph_coder_masked_tiny_architecture
+    graph_coder_masked_ablated_architecture, graph_coder_masked_tiny_architecture, graph_coder_masked_big_architecture
 from tokengt.models.tokengt import TokenGTEncoder
 
 logger = logging.getLogger(__name__)
@@ -81,5 +81,10 @@ def ablated_architecture(args):
 @register_model_architecture("graph_coder_encoder", "graph_coder_encoder_tiny")
 def tiny_architecture(args):
     graph_coder_masked_tiny_architecture(args)
+
+
+@register_model_architecture("graph_coder_encoder", "graph_coder_encoder_big")
+def big_architecture(args):
+    graph_coder_masked_big_architecture(args)
 
 
