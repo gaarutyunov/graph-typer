@@ -39,6 +39,7 @@ MODEL_ARCH=${3:-graph_coder_masked_base}
 CKPTS_PATH=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 TOP_N=${5:-1}
 NUM_CLASSES=${6:-1000}
+OUTPUT_PREDICTIONS=$7
 
 echo "Evaluating Top-$TOP_N..."
 echo "Model arch: $MODEL_ARCH"
@@ -47,4 +48,4 @@ echo "Dataset root: $DATASET_ROOT"
 echo "Using checkpoints from: ckpts/$CKPTS_PATH"
 echo "Num classes: $NUM_CLASSES"
 
-source ./scripts/eval.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N" "$NUM_CLASSES"
+source ./scripts/eval.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$CKPTS_PATH" "$TOP_N" "$NUM_CLASSES" "$OUTPUT_PREDICTIONS"

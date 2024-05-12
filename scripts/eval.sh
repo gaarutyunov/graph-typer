@@ -8,8 +8,17 @@ MODEL_ARCH=$3
 CKPTS_PATH=$4
 TOP_N=$5
 NUM_CLASSES=$6
+OUTPUT_PREDICTIONS=$7
+
+if [ -n "$OUTPUT_PREDICTIONS" ]; then
+  ARG="--output-predictions"
+else
+  ARG="--no-output-predictions"
+fi
 
 PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
+$ARG \
+--output-dir ./scripts/ckpts/"$CKPTS_PATH"/predictions \
 --split test \
 --metric auc \
 --top-n "$TOP_N" \

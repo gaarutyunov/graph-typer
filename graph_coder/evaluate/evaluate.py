@@ -4,14 +4,15 @@ Modified from https://github.com/microsoft/Graphormer
 import json
 import logging
 import os
+import pathlib
 import sys
 from pathlib import Path
-from typing import Dict, Tuple, NamedTuple
+from typing import Dict, Tuple, NamedTuple, Optional
 
 import numpy as np
 import torch
 from dpu_utils.mlutils import Vocabulary
-from dpu_utils.utils import RichPath
+from dpu_utils.utils import RichPath, ChunkWriter
 from fairseq import utils, options, tasks
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
 from fairseq.logging import progress_bar
@@ -125,6 +126,18 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
         top_n=args.top_n
     )
 
+    writer: Optional[ChunkWriter] = None
+
+    if args.output_predictions:
+        pathlib.Path(args.output_dir).mkdir(exist_ok=True, parents=True)
+
+        writer = ChunkWriter(
+            args.output_dir,
+            file_prefix="prediction_",
+            max_chunk_size=1000,
+            file_suffix=".jsonl.gz",
+        )
+
     # infer
     with torch.no_grad():
         model.eval()
@@ -170,6 +183,8 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
                                                        range(y.shape[1])},
                     location=annotation_location
                 )
+                if args.output_predictions:
+                    writer.add(annotation)
                 evaluator.add_sample(ground_truth=annotation.original_annotation,
                                      predicted_dist=annotation.predicted_annotation_logprob_dist)
 
@@ -179,6 +194,9 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
         output = open(args.output_path, mode="w")
 
     print(json.dumps(evaluator.metrics(), indent=2, sort_keys=True), file=output)
+
+    if args.output_predictions:
+        writer.close()
 
 
 def class_id_to_class(metadata: Dict[str, Vocabulary], class_id: int) -> str:
@@ -213,6 +231,23 @@ def main():
     parser.add_argument(
         "--output-path",
         type=str,
+    )
+    parser.add_argument(
+        "--output-predictions",
+        type=bool,
+        action="save_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--no-output-predictions",
+        type=bool,
+        action="save_false",
+        dest="output_predictions",
+    )
+    parser.add_argument(
+        "--output-dir",
+        type=str,
+        default="predictions",
     )
     parser.add_argument(
         "--metric",

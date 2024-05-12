@@ -13,7 +13,7 @@ for top_n in [1, 3, 5]:
         "pldi2020_small-graph_coder_encoder_base",
         "pldi2020-graph_coder_autoencoder_base-120524",
         "Final 1024",
-        "Final 512"
+        "pldi2020_small-graph_coder_encoder_big"
     ]:
         model_path = pathlib.Path(f"ckpts/{model}")
         top_n_path = model_path / f"result_top_{top_n}.json"
