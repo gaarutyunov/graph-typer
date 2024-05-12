@@ -234,13 +234,11 @@ def main():
     )
     parser.add_argument(
         "--output-predictions",
-        type=bool,
         action="store_true",
         default=False,
     )
     parser.add_argument(
         "--no-output-predictions",
-        type=bool,
         action="store_false",
         dest="output_predictions",
     )
