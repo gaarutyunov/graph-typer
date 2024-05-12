@@ -112,6 +112,8 @@ class GraphCoderAutoencoder(TokenGTEncoder):
             token_embeddings=token_embeddings
         )
 
+        x = self.activation_fn(x)
+
         # project back to size of vocabulary
         if self.share_input_output_embed and hasattr(
                 self.graph_encoder.embed_tokens, "weight"
