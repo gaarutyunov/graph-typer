@@ -8,12 +8,11 @@ import torch.nn.functional as F
 class MaskedDataset(FairseqDataset):
     def __init__(self,
                  dataset,
-                 mask_ratio: float = .5):
+                 mask_ratio: float = .75):
         super().__init__()
         self.dataset = dataset
         self.mask_ratio = mask_ratio
 
-    @lru_cache(maxsize=16)
     def __getitem__(self, index):
         return self._get_random_token_mask(index)
 
@@ -33,7 +32,7 @@ class MaskedDataset(FairseqDataset):
         nodes_with_labels = sample.y[nodes_with_labels_mask]
 
         num_nodes = nodes_with_labels.size(0)
-        node_mask = torch.rand((num_nodes,), device=sample.y.device) <= self.mask_ratio
+        node_mask = torch.rand((num_nodes,), device=sample.y.device) < self.mask_ratio
         node_mask_ = nodes_with_labels_mask.clone()
         node_mask_[nodes_with_labels_mask] = nodes_with_labels_mask[nodes_with_labels_mask] * node_mask
 

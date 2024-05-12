@@ -6,7 +6,7 @@ import logging
 from dataclasses import dataclass, field
 
 import numpy as np
-from fairseq.data import NestedDictionaryDataset, NumSamplesDataset
+from fairseq.data import NestedDictionaryDataset
 from fairseq.tasks import register_task
 
 from graph_coder.data.masked_dataset import MaskedDataset
@@ -91,7 +91,6 @@ class NodeClassificationTask(GraphPredictionTask):
 
         dataset = NestedDictionaryDataset(
             {
-                "nsamples": NumSamplesDataset(),
                 "net_input": {"batched_data": batched_data, "masked_tokens": masked_tokens},
                 "target": target,
             },

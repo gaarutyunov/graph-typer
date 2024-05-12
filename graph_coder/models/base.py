@@ -6,6 +6,9 @@ from tokengt.models.tokengt import base_architecture
 
 
 class GraphCoderMaskedModel(TokenGTModel):
+    def get_normalized_probs(self, net_output, log_probs, sample=None):
+        return super().get_normalized_probs({"encoder_out": net_output}, log_probs, sample)
+
     def get_targets(self, sample, net_output):
         tokens_num = [node_num + edge_num for node_num, edge_num in zip(sample["net_input"]["batched_data"]["node_num"], sample["net_input"]["batched_data"]["edge_num"])]
         max_n = max(tokens_num)
@@ -17,7 +20,7 @@ class GraphCoderMaskedModel(TokenGTModel):
     @staticmethod
     def add_args(parser):
         TokenGTModel.add_args(parser)
-        parser.add_argument("--masked", type=bool, help="Randomly mask tokens")
+        parser.add_argument("--autoencoder", type=bool, help="Autoencoder model")
         parser.add_argument("--special-tokens", type=bool, help="Use special tokens")
 
 
@@ -57,7 +60,7 @@ def graph_coder_masked_base_architecture(args):
 
     args.return_attention = getattr(args, "return_attention", False)
     args.special_tokens = getattr(args, "special_tokens", False)
-    args.masked = getattr(args, "masked", True)
+    args.autoencoder = getattr(args, "autoencoder", False)
     base_architecture(args)
 
 

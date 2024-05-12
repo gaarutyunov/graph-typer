@@ -49,7 +49,7 @@ class TokenGTGraphDecoder(nn.Module):
             qn_block_size: int = 8,
 
             return_attention: bool = False,
-            masked: bool = True
+            autoencoder: bool = False
     ) -> None:
         super().__init__()
         self.dropout_module = FairseqDropout(
@@ -65,6 +65,11 @@ class TokenGTGraphDecoder(nn.Module):
         self.performer_finetune = performer_finetune
         self.embed_scale = embed_scale
         self.graph_feature = graph_feature
+
+        self.autoencoder = autoencoder
+
+        if autoencoder:
+            self.mask_token = nn.Embedding(1, embedding_dim)
 
         if q_noise > 0:
             self.quant_noise = apply_quant_noise_(
@@ -226,6 +231,9 @@ class TokenGTGraphDecoder(nn.Module):
 
         if masked_tokens is not None:
             x[masked_tokens] = 0.0
+
+        if self.autoencoder and masked_tokens is not None:
+            x[masked_tokens] += self.mask_token.weight.expand(*x[masked_tokens].size()) + token_embeddings[masked_tokens]
 
         # B x T x C -> T x B x C
         x = x.transpose(0, 1)

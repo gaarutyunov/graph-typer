@@ -68,7 +68,7 @@ class GraphCoderAutoencoder(TokenGTEncoder):
             apply_graphormer_init=args.apply_graphormer_init,
             activation_fn=args.activation_fn,
             return_attention=args.return_attention,
-            masked=args.masked
+            autoencoder=args.autoencoder
             # >
         )
 
@@ -133,12 +133,14 @@ class GraphCoderAutoencoder(TokenGTEncoder):
 
 @register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_base")
 def base_architecture(args):
+    args.autoencoder = getattr(args, "autoencoder", True)
     args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_base_architecture(args)
 
 
 @register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_ablated")
 def ablated_architecture(args):
+    args.autoencoder = getattr(args, "autoencoder", True)
     args.encoder_layers = getattr(args, "encoder_layers", 6)
     args.decoder_layers = getattr(args, "decoder_layers", 6)
     graph_coder_masked_ablated_architecture(args)
@@ -146,12 +148,14 @@ def ablated_architecture(args):
 
 @register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_symmetric")
 def symmetric_architecture(args):
+    args.autoencoder = getattr(args, "autoencoder", True)
     args.encoder_layers = getattr(args, "encoder_layers", 6)
     args.decoder_layers = getattr(args, "decoder_layers", 6)
-    graph_coder_masked_ablated_architecture(args)
+    graph_coder_masked_base_architecture(args)
 
 
 @register_model_architecture("graph_coder_autoencoder", "graph_coder_autoencoder_tiny")
 def tiny_architecture(args):
+    args.autoencoder = getattr(args, "autoencoder", True)
     args.decoder_layers = getattr(args, "decoder_layers", 2)
     graph_coder_masked_tiny_architecture(args)

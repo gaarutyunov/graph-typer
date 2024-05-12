@@ -38,7 +38,6 @@ class GraphFeatureTokenizer(nn.Module):
             hidden_dim,
             n_layers,
             special_tokens: bool = False,
-            masked: bool = False
     ):
         super(GraphFeatureTokenizer, self).__init__()
 

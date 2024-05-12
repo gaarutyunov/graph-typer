@@ -148,7 +148,7 @@ class TokenGTEncoder(FairseqEncoder):
             lap_node_id_eig_dropout=args.lap_node_id_eig_dropout,
             type_id=args.type_id,
             special_tokens=args.special_tokens,
-            masked=args.masked,
+            autoencoder=args.autoencoder,
             # >
             # <
             stochastic_depth=args.stochastic_depth,

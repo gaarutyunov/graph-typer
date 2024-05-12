@@ -92,7 +92,7 @@ class TokenGTGraphEncoder(nn.Module):
 
             return_attention: bool = False,
             special_tokens: bool = False,
-            masked: bool = False,
+            autoencoder: bool = False,
 
     ) -> None:
 
@@ -122,12 +122,12 @@ class TokenGTGraphEncoder(nn.Module):
             hidden_dim=embedding_dim,
             n_layers=num_encoder_layers,
             special_tokens=special_tokens,
-            masked=masked,
         )
 
-        self.masked = masked
+        self.autoencoder = autoencoder
 
-        if masked:
+        if autoencoder:
+            self.autoencoder = autoencoder
             self.mask_token = nn.Embedding(1, embedding_dim)
 
         self.performer_finetune = performer_finetune
@@ -299,7 +299,7 @@ class TokenGTGraphEncoder(nn.Module):
         else:
             x, embedding, padding_mask, padded_index = self.graph_feature(batched_data, perturb, masked_tokens=masked_tokens)
 
-        if self.masked and masked_tokens is not None:
+        if self.autoencoder and masked_tokens is not None:
             x[masked_tokens] += self.mask_token.weight.expand(*x[masked_tokens].size())
 
         # x: B x T x C

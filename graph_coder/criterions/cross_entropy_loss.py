@@ -1,81 +1,22 @@
-import os.path
+# Copyright (c) Facebook, Inc. and its affiliates.
+#
+# This source code is licensed under the MIT license found in the
+# LICENSE file in the root directory of this source tree.
+import math
 
-import torch
-import torch.nn.functional as F
-from dpu_utils.utils import RichPath
-from fairseq import metrics
-from fairseq.criterions import register_criterion, FairseqCriterion
+from fairseq import utils
+from fairseq.criterions import register_criterion
+from fairseq.criterions.cross_entropy import CrossEntropyCriterion
 from fairseq.dataclass import FairseqDataclass
-
-
-@register_criterion("weighted_cross_entropy_loss", dataclass=FairseqDataclass)
-class WeightedCrossEntropyLoss(FairseqCriterion):
-    """
-    Implementation for the cross entropy loss used in graph-typer model training.
-    """
-
-    def __init__(self, task):
-        super().__init__(task)
-        self.weights = RichPath.create(os.path.expanduser(task.cfg.weights_path)).read_by_file_suffix()
-
-    def forward(self, model, sample, perturb=None, reduce=True):
-        """Compute the loss for the given sample.
-
-        Returns a tuple with three elements:
-        1) the loss
-        2) the sample size, which is used as the denominator for the gradient
-        3) logging outputs to display while training
-        """
-        sample_size = sample["nsamples"]
-
-        with torch.no_grad():
-            natoms = max(sample["net_input"]["batched_data"]["node_num"])
-
-        logits = model(**sample["net_input"], perturb=perturb)
-        targets = model.get_targets(sample, [logits])
-        if self.weights.device != logits.device:
-            self.weights = self.weights.to(logits.device, dtype=logits.dtype)
-
-        loss = F.cross_entropy(
-            logits,
-            targets,
-            reduction="mean",
-            weight=self.weights
-        )
-
-        logging_output = {
-            "loss": loss.data,
-            "sample_size": logits.size(0),
-            "nsentences": sample_size,
-            "ntokens": natoms,
-        }
-        return loss, sample_size, logging_output
-
-    @staticmethod
-    def reduce_metrics(logging_outputs) -> None:
-        """Aggregate logging outputs from data parallel training."""
-        loss_sum = sum(log.get("loss", 0) for log in logging_outputs)
-        sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
-
-        metrics.log_scalar("loss", loss_sum / sample_size, sample_size, round=6)
-
-    @staticmethod
-    def logging_outputs_can_be_summed() -> bool:
-        """
-        Whether the logging outputs returned by `forward` can be summed
-        across workers prior to calling `reduce_metrics`. Setting this
-        to True will improves distributed training speed.
-        """
-        return True
+from fairseq.logging import metrics
 
 
 @register_criterion("cross_entropy_loss", dataclass=FairseqDataclass)
-class CrossEntropyLoss(FairseqCriterion):
-    """
-    Implementation for the cross entropy loss used in graph-typer model training.
-    """
+class CrossEntropyCriterionLoss(CrossEntropyCriterion):
+    def __init__(self, task):
+        super().__init__(task, False)
 
-    def forward(self, model, sample, perturb=None, reduce=True):
+    def forward(self, model, sample, reduce=True):
         """Compute the loss for the given sample.
 
         Returns a tuple with three elements:
@@ -83,24 +24,17 @@ class CrossEntropyLoss(FairseqCriterion):
         2) the sample size, which is used as the denominator for the gradient
         3) logging outputs to display while training
         """
-        sample_size = sample["nsamples"]
-
-        with torch.no_grad():
-            natoms = max(sample["net_input"]["batched_data"]["node_num"])
-
-        logits = model(**sample["net_input"], perturb=perturb)
-        targets = model.get_targets(sample, [logits])
-
-        loss = F.cross_entropy(
-            logits,
-            targets,
-        )
-
+        net_output = model(**sample["net_input"])
+        lm_loss, _ = self.compute_loss(model, net_output, sample, reduce=reduce)
+        ntokens = net_output.size(0)
+        loss = lm_loss / ntokens
+        sample_size = 1
         logging_output = {
             "loss": loss.data,
-            "sample_size": logits.size(0),
-            "nsentences": sample_size,
-            "ntokens": natoms,
+            "lm_loss": lm_loss.data,
+            "ntokens": ntokens,
+            "nsentences": sample["target"].size(0),
+            "sample_size": sample_size,
         }
         return loss, sample_size, logging_output
 
@@ -108,15 +42,22 @@ class CrossEntropyLoss(FairseqCriterion):
     def reduce_metrics(logging_outputs) -> None:
         """Aggregate logging outputs from data parallel training."""
         loss_sum = sum(log.get("loss", 0) for log in logging_outputs)
+        lm_loss_sum = sum(log.get("lm_loss", 0) for log in logging_outputs)
+        ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
         sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
 
-        metrics.log_scalar("loss", loss_sum / sample_size, sample_size, round=6)
+        # we divide by log(2) to convert the loss from base e to base 2
+        metrics.log_scalar(
+            "loss", loss_sum / sample_size / math.log(2), sample_size, round=3
+        )
+        metrics.log_scalar(
+            "lm_loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
+        )
+        metrics.log_scalar(
+            "nll_loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
+        )
+        metrics.log_derived(
+            "ppl", lambda meters: utils.get_perplexity(meters["nll_loss"].avg)
+        )
 
-    @staticmethod
-    def logging_outputs_can_be_summed() -> bool:
-        """
-        Whether the logging outputs returned by `forward` can be summed
-        across workers prior to calling `reduce_metrics`. Setting this
-        to True will improves distributed training speed.
-        """
-        return True
+
