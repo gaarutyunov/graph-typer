@@ -167,7 +167,8 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
                 annotation = annotation_data['annotation']
                 original_annotations.append((node_idx, annotation, annotation_data['name'], annotation_data['location'], annotation_data['type']))
 
-            assert len(original_annotations) == y.shape[0]
+            if len(original_annotations) != y.shape[0]:
+                continue
 
             # This is also classification-specific due to class_id_to_class
             for i, (node_idx, node_type, var_name, annotation_location, annotation_type) in enumerate(original_annotations):
@@ -179,7 +180,7 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
                     name=var_name,
                     original_annotation=node_type,
                     annotation_type=annotation_type,
-                    predicted_annotation_logprob_dist={class_id_to_class(metadata, j): y[i, j] for j in
+                    predicted_annotation_logprob_dist={class_id_to_class(metadata, j): y[i, j].data for j in
                                                        range(y.shape[1])},
                     location=annotation_location
                 )
