@@ -69,21 +69,21 @@ data.append([
 #%%
 df = pd.DataFrame([data[j][i] for i in range(3) for j in range(len(data))], columns=columns, index=idx)
 #%%
-def highlight_max(data):
+def highlight_min(data):
     attr = "font-weight:bold;"
 
     if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
-        is_max = data == data.max()
-        return [attr if v else '' for v in is_max]
+        is_min = data == data.min()
+        return [attr if v else '' for v in is_min]
 
-    is_max = data.groupby(level=0).transform('max') == data
+    is_min = data.groupby(level=0).transform('min') == data
 
-    return pd.DataFrame(np.where(is_max, attr, ''),
+    return pd.DataFrame(np.where(is_min, attr, ''),
                         index=data.index, columns=data.columns)
 
 
 with open("../research/tables/result.tex", mode="w") as f:
-    print((df * 100).style.apply(highlight_max, axis=None).format(precision=2).to_latex(
+    print((df * 100).style.apply(highlight_min, axis=None).format(precision=2).to_latex(
         convert_css=True,
         hrules=True,
         clines="skip-last;data",
