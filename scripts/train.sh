@@ -20,8 +20,7 @@ fairseq-train \
 --max-tokens 4096 \
 --num-data-workers $NUM_DATA_WORKERS \
 --num-workers 0 \
---ddp-backend=pytorch_ddp \
---distributed-port 1369 \
+--ddp-backend=legacy_ddp \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion cross_entropy_loss \
