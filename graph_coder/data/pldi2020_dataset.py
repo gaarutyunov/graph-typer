@@ -31,9 +31,9 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train", **kwargs):
         split=split,
         num_classes=cfg.num_classes,
         sizes={
-            "train": 10,
-            "valid": 10,
-            "test": 10
+            "train": 7,
+            "valid": 1,
+            "test": 2
         },
         max_tokens=cfg.max_tokens,
         num_workers=cfg.num_data_workers,
