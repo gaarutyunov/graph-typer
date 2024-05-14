@@ -31,9 +31,9 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train", **kwargs):
         split=split,
         num_classes=cfg.num_classes,
         sizes={
-            "train": 3,
-            "valid": 1,
-            "test": 1
+            "train": 10,
+            "valid": 10,
+            "test": 10
         },
         max_tokens=cfg.max_tokens,
         num_workers=cfg.num_data_workers,
@@ -155,6 +155,8 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
                     if np.all(sample["variable_target_class"] == 0):
                         continue
                     graph = sample_to_nx(sample)
+                    if len(graph.graph["supernodes"]) == 0:
+                        continue
                     data = nx_to_data(graph)
                     data.idx = idx
 

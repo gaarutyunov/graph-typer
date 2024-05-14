@@ -31,6 +31,8 @@ def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
         if target == 0:
             continue
         idx = sample['target_node_idxs'][i]
+        if str(idx) not in sample["raw_data"]["supernodes"]:
+            continue
         y[idx] = target
         supernodes[str(idx)] = sample["raw_data"]["supernodes"][str(idx)]
 
