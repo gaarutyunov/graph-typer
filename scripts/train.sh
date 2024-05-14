@@ -42,9 +42,5 @@ fairseq-train \
 --save-dir ./ckpts/"$CKPTS_PATH" \
 --tensorboard-logdir ./tb/"$CKPTS_PATH" \
 --no-epoch-checkpoints \
---validate-interval-updates 1000 \
---nval 100 \
---save-interval-updates 1000 \
---keep-interval-updates 1 \
 --patience 10 \
 --find-unused-parameters
