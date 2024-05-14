@@ -64,7 +64,7 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     split = args.split
     dataset = task.load_dataset(split)
     batch_iterator = task.get_batch_iterator(
-        dataset=task.dataset(split),
+        dataset=dataset,
         max_tokens=cfg.dataset.max_tokens_valid,
         max_sentences=cfg.dataset.batch_size_valid,
         max_positions=utils.resolve_max_positions(
@@ -84,9 +84,8 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     )
     progress = progress_bar.progress_bar(
         itr,
-        log_format=cfg.common.log_format,
+        log_format="tqdm",
         log_interval=cfg.common.log_interval,
-        default_log_format=("tqdm" if not cfg.common.no_progress_bar else "simple")
     )
 
     metadata_path = RichPath.create(os.path.expanduser(args.metadata_path))
@@ -117,53 +116,58 @@ def eval(args, use_pretrained, checkpoint_path=None, logger=None):
     # infer
     with torch.no_grad():
         model.eval()
-        for i, sample in enumerate(progress):
+        for sample, raw_sample in progress:
             if torch.cuda.is_available():
                 sample = utils.move_to_cuda(sample)
-            y = model(**sample["net_input"])
+            y = model(batched_data=sample, masked_tokens=sample.get("masked_tokens"))
             if torch.cuda.is_available():
                 torch.cuda.empty_cache()
 
-            idx = sample["net_input"]["batched_data"]["idx"][0].item()
+            raw_sample = raw_sample[0]
 
-            raw_sample = dataset.defn["net_input.batched_data"].dataset.get_sample(idx)
-            if len(raw_sample['supernodes']) == 0:
-                continue
             provenance = raw_sample.get("Provenance", "?")
 
-            masked_tokens = sample["net_input"]["masked_tokens"].squeeze()
-            node_idxs = torch.arange(masked_tokens.size(-1))
-            node_idxs = node_idxs[masked_tokens]
-            original_annotations = []
-            for node_idx, annotation_data in raw_sample['supernodes'].items():
+            masked_tokens = sample["masked_tokens"].squeeze()
+            node_idxs = masked_tokens.nonzero()
+            target_annotations = []
+            input_annotations = []
+
+            for i, (node_idx, annotation_data) in enumerate(raw_sample["supernodes"].items()):
                 node_idx = int(node_idx)
+
                 if node_idx not in node_idxs:
+                    if args.output_predictions:
+                        input_annotations.append(dict(
+                            node_id=node_idx,
+                            name=annotation_data['name'],
+                            original_annotation=annotation_data['annotation'],
+                            annotation_type=annotation_data['type'],
+                            location=annotation_data['location']
+                        ))
                     continue
 
-                annotation = annotation_data['annotation']
-                original_annotations.append((node_idx, annotation, annotation_data['name'], annotation_data['location'], annotation_data['type']))
+                predicted_dist = {class_id_to_class(metadata, j): y[0, node_idx, j].item() for j in
+                                  range(y.size(-1))}
 
-            if len(original_annotations) != y.shape[0]:
-                continue
+                evaluator.add_sample(ground_truth=annotation_data['annotation'],
+                                     predicted_dist=predicted_dist)
 
-            # This is also classification-specific due to class_id_to_class
-            for i, (node_idx, node_type, var_name, annotation_location, annotation_type) in enumerate(original_annotations):
-                if ignore_type_annotation(node_type):
-                    continue
-                annotation = Annotation(
-                    provenance=provenance,
-                    node_id=node_idx,
-                    name=var_name,
-                    original_annotation=node_type,
-                    annotation_type=annotation_type,
-                    predicted_annotation_logprob_dist={class_id_to_class(metadata, j): y[i, j].data for j in
-                                                       range(y.shape[1])},
-                    location=annotation_location
-                )
                 if args.output_predictions:
-                    writer.add(annotation)
-                evaluator.add_sample(ground_truth=annotation.original_annotation,
-                                     predicted_dist=annotation.predicted_annotation_logprob_dist)
+                    target_annotations.append(dict(
+                        node_id=node_idx,
+                        name=annotation_data['name'],
+                        original_annotation=annotation_data['annotation'],
+                        annotation_type=annotation_data['type'],
+                        location=annotation_data['location'],
+                        predicted_dist=predicted_dist
+                    ))
+
+            if args.output_predictions:
+                writer.add({
+                    "provenance": provenance,
+                    "input_annotations": input_annotations,
+                    "target_annotations": target_annotations,
+                })
 
     output = sys.stdout
 
@@ -225,12 +229,9 @@ def main():
         default="predictions",
     )
     parser.add_argument(
-        "--metric",
-        type=str,
-    )
-    parser.add_argument(
         "--top-n",
         type=int,
+        default=1
     )
     args = options.parse_args_and_arch(parser, modify_parser=None)
     logger = logging.getLogger(__name__)

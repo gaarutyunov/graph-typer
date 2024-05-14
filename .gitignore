@@ -244,3 +244,4 @@ scripts/ckpts
 logs
 !out/paper.pdf
 scripts/tb
+scripts/predictions
