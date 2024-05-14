@@ -69,7 +69,6 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         self._num_classes = num_classes
         self._processed_dir = processed_dir
         self._len = 0
-        self._idx = range(self._len)
         self._data_mapping = {}
         self._sample_mapping = {}
         self._size = sizes.get(split, 1)
@@ -85,11 +84,8 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         self.load_meta()
 
     def load_meta(self) -> "PLDI2020Dataset":
-        self._idx = set(self._idx)
-        if os.path.exists(self.indexes_path):
-            self._idx = RichPath.create(self.indexes_path).read_by_file_suffix()
-        self._idx = list(self._idx)
-        self._len = len(self._idx)
+        sizes_mask = self.sizes <= self._max_tokens
+        self._len = sizes_mask.sum()
 
         return self
 
@@ -106,6 +102,10 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         return os.path.join(self.processed_dir, "counter.pkl.gz")
 
     @property
+    def sizes_path(self):
+        return os.path.join(self.processed_dir, "sizes.pkl.gz")
+
+    @property
     def indexes_path(self):
         return os.path.join(self.processed_dir, "indexes.pkl.gz")
 
@@ -118,14 +118,26 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
     def counter(self) -> torch.Tensor:
         if not os.path.exists(self.counter_path):
             return torch.zeros(self._num_classes)
-        counter_path = RichPath.create(self.counter_path)
-        return counter_path.read_by_file_suffix()
+        return RichPath.create(self.counter_path).read_by_file_suffix()
+
+    @property
+    def sizes(self) -> Optional[torch.Tensor]:
+        if not os.path.exists(self.sizes_path):
+            return torch.tensor([0])
+        return RichPath.create(self.sizes_path).read_by_file_suffix()
+
+    @property
+    def indexes(self) -> torch.Tensor:
+        if not os.path.exists(self.sizes_path):
+            return torch.arange(self._len)
+        return RichPath.create(self.indxes_path).read_by_file_suffix()
 
     def process(self):
         if len(self.processed_file_names) == self._size:
             return self
         idx = 0
         indexes = []
+        sizes = []
 
         counter = self.counter
 
@@ -150,15 +162,16 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
                     sample_writer.add(graph.graph)
                     values, counts = torch.unique(data.y, return_counts=True)
                     counter[values] += counts
+                    sizes.append(data.y.size(0) + data.edge_index.size(1))
                     idx += 1
                     indexes.append(idx)
 
-            # save indexes
-            RichPath.create(self.indexes_path).save_as_compressed_file(set(indexes))
-            # load updated meta
-            self.load_meta()
-            # save counter
-            RichPath.create(self.counter_path).save_as_compressed_file(counter)
+        # save indexes
+        RichPath.create(self.indexes_path).save_as_compressed_file(torch.tensor(indexes))
+        # save counter
+        RichPath.create(self.counter_path).save_as_compressed_file(counter)
+        # save sizes
+        RichPath.create(self.sizes_path).save_as_compressed_file(torch.tensor(sizes))
 
         return self
 

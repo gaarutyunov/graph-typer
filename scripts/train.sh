@@ -20,12 +20,13 @@ fairseq-train \
 --max-tokens 4096 \
 --num-data-workers $NUM_DATA_WORKERS \
 --num-workers 0 \
---ddp-backend=legacy_ddp \
+--ddp-backend=pytorch_ddp \
+--distributed-port 1369 \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion cross_entropy_loss \
 --counter-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/counter.pkl.gz \
---index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/indexes.pkl.gz \
+--sizes-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/sizes.pkl.gz \
 --arch "$MODEL_ARCH" \
 --performer \
 --performer-feature-redraw-interval 100 \

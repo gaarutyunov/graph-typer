@@ -15,12 +15,13 @@ import torch.nn.functional as F
 
 @register_criterion("cross_entropy_loss")
 class CrossEntropyLoss(FairseqCriterion):
-    def __init__(self, task, counter_path, index_path):
+    def __init__(self, task, counter_path, sizes_path):
         super().__init__(task)
         total = 0
-        if index_path is not None:
-            index = RichPath.create(index_path).read_by_file_suffix()
-            total += len(index)
+        if sizes_path is not None:
+            sizes = RichPath.create(sizes_path).read_by_file_suffix()
+
+            total = (sizes <= task.cfg.max_tokens).sum().item()
         if counter_path is not None:
             counter = RichPath.create(counter_path).read_by_file_suffix()
             if total == 0:
@@ -33,7 +34,7 @@ class CrossEntropyLoss(FairseqCriterion):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument("--counter-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None)
-        parser.add_argument("--index-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None)
+        parser.add_argument("--sizes-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None)
 
     def forward(self, model, sample, reduce=True):
         """Compute the loss for the given sample.
