@@ -19,6 +19,7 @@ def pldi2020_small(cfg, split: Literal["train", "test", "valid"] = "train", **kw
         max_tokens=cfg.max_tokens,
         num_workers=cfg.num_data_workers,
         processed_dir=cfg.processed_dir,
-        mask_ratio=cfg.mask_ratio,
+        mask_ratio=getattr(cfg, "mask_ratio", 0.5),
+        batch_size=getattr(cfg, "batch_size", 4),
         **kwargs
     ).process()

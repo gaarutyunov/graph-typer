@@ -39,7 +39,8 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train", **kwargs):
         max_tokens=cfg.max_tokens,
         num_workers=cfg.num_data_workers,
         processed_dir=cfg.processed_dir,
-        mask_ratio=cfg.mask_ratio,
+        mask_ratio=getattr(cfg, "mask_ratio", 0.5),
+        batch_size=getattr(cfg, "batch_size", 4),
         **kwargs
     ).process()
 
@@ -50,10 +51,7 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
 
         length = sizes_mask.sum().item() // self._world_size
 
-        if length // 2 // 2 % 2 != 0:
-            length -= 2
-
-        return length
+        return length // self._batch_size * self._batch_size
 
     def __repr__(self):
         return self.__class__.__name__ + f"({len(self)})"
@@ -68,6 +66,7 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
                  processed_dir: str = "processed-data",
                  num_workers: int = 0,
                  mask_ratio: float = 0.5,
+                 batch_size: int = 4,
                  **kwargs):
         if isinstance(root, str):
             root = os.path.expanduser(os.path.normpath(root))
@@ -86,6 +85,7 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         self._with_samples = split == "test"
         self._shuffle = False
         self._num_workers = num_workers
+        self._batch_size = batch_size
         self._rank = fairseq.distributed.utils.get_global_rank()
         self._world_size = fairseq.distributed.utils.get_global_world_size()
 

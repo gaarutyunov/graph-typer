@@ -25,7 +25,6 @@ if __name__ == "__main__":
     parser.add_argument("--num-classes", default=100, type=int, help="Num classes")
     parser.add_argument("--processed-dir", default="processed-dir", help="Processed data directory")
     parser.add_argument("--num-data-workers", default=4, type=int, help="Number of data workers")
-    parser.add_argument("--mask-ratio", default=0.5, type=float, help="Mask ratio")
 
     args = parser.parse_args()
     main(args)
