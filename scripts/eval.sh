@@ -21,11 +21,12 @@ PYTHONPATH=. python graph_coder/evaluate/evaluate.py \
 $ARG \
 --output-dir ./scripts/ckpts/"$CKPTS_PATH"/predictions \
 --split test \
---metric auc \
 --top-n "$TOP_N" \
 --dataset-name "$DATASET_NAME" \
 --dataset-root "$DATASET_ROOT" \
 --processed-dir "$PROCESSED_DIR" \
+--max-tokens 4096 \
+--num-data-workers $NUM_DATA_WORKERS \
 --user-dir graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \
