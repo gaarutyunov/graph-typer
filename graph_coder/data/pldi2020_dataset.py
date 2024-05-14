@@ -103,7 +103,7 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
 
     @property
     def counter_path(self):
-        return os.path.join(self._root, self._processed_dir, "counter.pkl.gz")
+        return os.path.join(self.processed_dir, "counter.pkl.gz")
 
     @property
     def indexes_path(self):
@@ -115,7 +115,9 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         return list(processed_path.glob("data_chunk_*.pkl.gz"))
 
     @property
-    def counter(self):
+    def counter(self) -> torch.Tensor:
+        if not os.path.exists(self.counter_path):
+            return torch.zeros(self._num_classes)
         counter_path = RichPath.create(self.counter_path)
         return counter_path.read_by_file_suffix()
 
@@ -125,10 +127,7 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         idx = 0
         indexes = []
 
-        if os.path.exists(self.counter_path):
-            counter = self.counter
-        else:
-            counter = torch.zeros(self._num_classes)
+        counter = self.counter
 
         path = RichPath.create(self.raw_dir)
         paths = path.get_filtered_files_in_dir("chunk_*")

@@ -19,9 +19,8 @@ class CrossEntropyLoss(FairseqCriterion):
         super().__init__(task)
         total = 0
         if index_path is not None:
-            for path in index_path:
-                index = RichPath.create(path).read_by_file_suffix()
-                total += len(index)
+            index = RichPath.create(index_path).read_by_file_suffix()
+            total += len(index)
         if counter_path is not None:
             counter = RichPath.create(counter_path).read_by_file_suffix()
             if total == 0:
@@ -34,7 +33,7 @@ class CrossEntropyLoss(FairseqCriterion):
     @classmethod
     def add_args(cls, parser):
         parser.add_argument("--counter-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None)
-        parser.add_argument("--index-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None, action="append")
+        parser.add_argument("--index-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None)
 
     def forward(self, model, sample, reduce=True):
         """Compute the loss for the given sample.

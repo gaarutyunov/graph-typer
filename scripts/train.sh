@@ -25,10 +25,8 @@ fairseq-train \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion cross_entropy_loss \
---counter-path "$DATASET_ROOT"/"$PROCESSED_DIR"/counter.pkl.gz \
+--counter-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/counter.pkl.gz \
 --index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/indexes.pkl.gz \
---index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/valid/indexes.pkl.gz \
---index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/test/indexes.pkl.gz \
 --arch "$MODEL_ARCH" \
 --performer \
 --performer-feature-redraw-interval 100 \
