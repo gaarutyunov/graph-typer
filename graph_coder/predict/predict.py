@@ -245,7 +245,9 @@ def main() -> None:
 
     model = load_model(args)
 
-    model_output = model(**model_input)
+    with torch.no_grad():
+        model_output = model(**model_input)
+    model_output = model_output[masked_tokens[None, ...]]
 
     original_annotations = []
     for node_idx, annotation_data in nx.graph['supernodes'].items():
@@ -266,7 +268,7 @@ def main() -> None:
 
         predicted = sorted(predicted_dist.items(), key=lambda item: item[1], reverse=True)
 
-        predicted_types[annotation_location[0]][annotation_location[1]] = {
+        predicted_types[annotation_location[0]][annotation_location[1] + len(var_name)] = {
             "type": predicted[0][0],
             "annotation_type": annotation_type,
             "sorted": predicted
@@ -281,7 +283,7 @@ def main() -> None:
                     new_type = f": {annotation['type']}"
                 else:
                     new_type = f"-> {annotation['type']}"
-                lines[i] = line[:idx-1] + new_type + line[idx-1:]
+                lines[i] = line[:idx] + new_type + line[idx:]
 
     args.output.write_text("\n".join(lines))
 
@@ -302,7 +304,7 @@ def setup() -> argparse.ArgumentParser:
     parser.add_argument(
         "--checkpoint-path",
         type=str,
-        default="scripts/ckpts/pldi2020-graph_coder_encoder_base-120524/checkpoint_best_cpu.pt"
+        default="scripts/ckpts/pldi2020-graph_coder_encoder_base/checkpoint_best_cpu.pt"
     )
     parser.add_argument(
         "--alias-metadata-path",
