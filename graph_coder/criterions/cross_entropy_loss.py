@@ -46,7 +46,7 @@ class CrossEntropyLoss(FairseqCriterion):
         masked_tokens = sample.get("masked_tokens", None)
         net_output = model(batched_data=sample, masked_tokens=masked_tokens)
         if self.weights is not None:
-            self.weights.to(net_output.device)
+            self.weights = self.weights.to(net_output.device)
         targets = model.get_targets(sample, net_output)
         loss = F.cross_entropy(
             net_output.view(-1, net_output.size(-1)),
