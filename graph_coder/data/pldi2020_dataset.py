@@ -224,9 +224,9 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
                     yield preprocess_item(data, self._mask_ratio), sample_chunk[i]
 
         if self._with_samples:
-            yield from data_with_sample_iter()
+            return data_with_sample_iter()
 
-        yield from data_iter()
+        return data_iter()
 
     def __iter__(self):
         return iter(self._data_generator())
