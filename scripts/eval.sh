@@ -11,6 +11,8 @@ NUM_CLASSES=$6
 PROCESSED_DIR=$7
 OUTPUT_PREDICTIONS=$8
 
+NUM_DATA_WORKERS=$((SLURM_CPUS_PER_GPU * SLURM_GPUS))
+
 if [ -n "$OUTPUT_PREDICTIONS" ]; then
   ARG="--output-predictions"
 else
@@ -26,7 +28,7 @@ $ARG \
 --dataset-root "$DATASET_ROOT" \
 --processed-dir "$PROCESSED_DIR" \
 --max-tokens 4096 \
---num-data-workers $NUM_DATA_WORKERS \
+--num-data-workers "$NUM_DATA_WORKERS" \
 --user-dir graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \
