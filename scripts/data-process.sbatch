@@ -12,7 +12,7 @@ DATASET_ROOT=${2:-~/data}
 SPLIT=${3:-train}
 MAX_TOKENS=${4:-4096}
 NUM_CLASSES=${5:-1000}
-PROCESSED_DIR=${6:-"processed-dir-$MAX_TOKENS"}
+PROCESSED_DIR=${6:-"processed-data-$MAX_TOKENS"}
 
 echo "Processing dataset $DATASET_NAME"
 echo "Root: $DATASET_ROOT"
