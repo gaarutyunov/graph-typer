@@ -7,7 +7,7 @@ import os
 import pathlib
 import sys
 from pathlib import Path
-from typing import Dict, Tuple, NamedTuple, Optional
+from typing import Dict, Optional
 
 import numpy as np
 import torch
@@ -17,6 +17,8 @@ from fairseq import utils, options, tasks
 from fairseq.dataclass.utils import convert_namespace_to_omegaconf
 from fairseq.logging import progress_bar
 
+from typilus import Annotation
+from typilus.model.utils import ignore_type_annotation
 from typilus.utils.evaluator import TypePredictionEvaluator
 
 
@@ -33,32 +35,6 @@ def get_padded_node_mask(batched_data: Dict[str, torch.Tensor], **kwargs) -> tor
     node_num = torch.tensor(node_num, device=device, dtype=torch.long)[:, None]  # [B, 1]
 
     return torch.less(token_pos, node_num)
-
-
-class Annotation(NamedTuple):
-    provenance: str
-    node_id: int
-    name: str
-    location: Tuple[int, int]
-    original_annotation: str
-    annotation_type: str
-    predicted_annotation_logprob_dist: Dict[str, float]
-
-
-IGNORED_TYPES = {'typing.Any', 'Any', '', 'typing.NoReturn', 'NoReturn', 'nothing', 'None', None,
-                 # Generic Type Params
-                 'T', '_T', '_T0', '_T1', '_T2', '_T3', '_T4', '_T5', '_T6', '_T7'}
-
-
-def ignore_type_annotation(name: str) -> bool:
-    """A filter of types that should be ignored when learning or predicting"""
-    if name in IGNORED_TYPES:
-        return True
-    if '%UNKNOWN%' in name:
-        return True
-    if name.startswith('_'):
-        return True
-    return False
 
 
 def eval(args, use_pretrained, checkpoint_path=None, logger=None):

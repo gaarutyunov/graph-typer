@@ -124,9 +124,6 @@ class GraphCoderAutoencoder(TokenGTEncoder):
         if self.lm_output_learned_bias is not None:
             x = x + self.lm_output_learned_bias
 
-        if masked_tokens is not None:
-            x = x[masked_tokens]
-
         if self.return_attention:
             return x, attn_dict
         else:

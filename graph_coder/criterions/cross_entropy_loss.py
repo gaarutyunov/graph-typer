@@ -3,18 +3,38 @@
 # This source code is licensed under the MIT license found in the
 # LICENSE file in the root directory of this source tree.
 import math
+import pathlib
 
+from dpu_utils.utils import RichPath
 from fairseq import utils
-from fairseq.criterions import register_criterion
-from fairseq.criterions.cross_entropy import CrossEntropyCriterion
-from fairseq.dataclass import FairseqDataclass
+from fairseq.criterions import register_criterion, FairseqCriterion
 from fairseq.logging import metrics
 
+import torch.nn.functional as F
 
-@register_criterion("cross_entropy_loss", dataclass=FairseqDataclass)
-class CrossEntropyLoss(CrossEntropyCriterion):
-    def __init__(self, task):
-        super().__init__(task, False)
+
+@register_criterion("cross_entropy_loss")
+class CrossEntropyLoss(FairseqCriterion):
+    def __init__(self, task, counter_path, index_path):
+        super().__init__(task)
+        total = 0
+        if index_path is not None:
+            for path in index_path:
+                index = RichPath.create(path).read_by_file_suffix()
+                total += len(index)
+        if counter_path is not None:
+            counter = RichPath.create(counter_path).read_by_file_suffix()
+            if total == 0:
+                self.weights = None
+            else:
+                self.weights = total / task.cfg.num_classes * counter
+        else:
+            self.weights = None
+
+    @classmethod
+    def add_args(cls, parser):
+        parser.add_argument("--counter-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None)
+        parser.add_argument("--index-path", type=lambda s: str(pathlib.Path(s).expanduser()), default=None, action="append")
 
     def forward(self, model, sample, reduce=True):
         """Compute the loss for the given sample.
@@ -24,38 +44,46 @@ class CrossEntropyLoss(CrossEntropyCriterion):
         2) the sample size, which is used as the denominator for the gradient
         3) logging outputs to display while training
         """
-        net_output = model(**sample["net_input"])
-        lm_loss, _ = self.compute_loss(model, net_output, sample, reduce=reduce)
-        ntokens = net_output.size(0)
-        loss = lm_loss / ntokens
-        sample_size = 1
+        masked_tokens = sample.get("masked_tokens", None)
+        net_output = model(batched_data=sample, masked_tokens=masked_tokens)
+        if self.weights is not None:
+            self.weights.to(net_output.device)
+        targets = model.get_targets(sample, net_output)
+        loss = F.cross_entropy(
+            net_output.view(-1, net_output.size(-1)),
+            targets.view(-1),
+            reduction="sum" if reduce else "none",
+            weight=self.weights,
+            ignore_index=self.padding_idx,
+        )
+        ntokens = masked_tokens.sum().item()
         logging_output = {
-            "loss": loss.data,
-            "lm_loss": lm_loss.data,
+            "loss": loss.item(),
+            "sample_size": ntokens,
             "ntokens": ntokens,
-            "nsentences": sample["target"].size(0),
-            "sample_size": sample_size,
+            "nsentences": net_output.size(0),
         }
-        return loss, sample_size, logging_output
+        return loss, ntokens, logging_output
 
     @staticmethod
     def reduce_metrics(logging_outputs) -> None:
         """Aggregate logging outputs from data parallel training."""
-        lm_loss_sum = sum(log.get("lm_loss", 0) for log in logging_outputs)
-        ntokens = sum(log.get("ntokens", 0) for log in logging_outputs)
+        loss = sum(log.get("loss", 0) for log in logging_outputs)
+        sample_size = sum(log.get("sample_size", 0) for log in logging_outputs)
 
         # we divide by log(2) to convert the loss from base e to base 2
         metrics.log_scalar(
-            "loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
-        )
-        metrics.log_scalar(
-            "lm_loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
-        )
-        metrics.log_scalar(
-            "nll_loss", lm_loss_sum / ntokens / math.log(2), ntokens, round=3
+            "loss", loss / sample_size / math.log(2), sample_size, round=3
         )
         metrics.log_derived(
-            "ppl", lambda meters: utils.get_perplexity(meters["nll_loss"].avg)
+            "ppl", lambda meters: utils.get_perplexity(meters["loss"].avg)
         )
 
-
+    @staticmethod
+    def logging_outputs_can_be_summed() -> bool:
+        """
+        Whether the logging outputs returned by `forward` can be summed
+        across workers prior to calling `reduce_metrics`. Setting this
+        to True will improves distributed training speed.
+        """
+        return True

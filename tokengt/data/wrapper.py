@@ -1,9 +1,12 @@
 """
 Modified from https://github.com/microsoft/Graphormer
 """
+import math
 import os
+import random
 
 import torch
+import torch.nn.functional as F
 import numpy as np
 import pyximport
 
@@ -24,8 +27,7 @@ def convert_to_single_emb(x, offset: int = 512):
     return x
 
 
-def preprocess_item(item):
-
+def preprocess_item(item, mask_ratio: float = 0.5):
     edge_int_feature, edge_index, node_int_feature = item.edge_attr, item.edge_index, item.x
     node_data = convert_to_single_emb(node_int_feature)
     if len(edge_int_feature.size()) == 1:
@@ -38,6 +40,12 @@ def preprocess_item(item):
     in_degree = dense_adj.long().sum(dim=1).view(-1)
     lap_eigvec, lap_eigval = algos.lap_eig(dense_adj, N, in_degree)  # [N, N], [N,]
     lap_eigval = lap_eigval[None, :].expand_as(lap_eigvec)
+    nodes_with_labels = item.y != -100
+
+    node_mask = np.random.choice(nodes_with_labels.nonzero().squeeze(), math.ceil(nodes_with_labels.sum() * mask_ratio))
+    token_count = node_data.size(0) + edge_data.size(0)
+    token_mask = torch.zeros(token_count, dtype=torch.bool)
+    token_mask[node_mask] = True
 
     item.node_data = node_data
     item.edge_data = edge_data
@@ -46,4 +54,6 @@ def preprocess_item(item):
     item.out_degree = in_degree  # for undirected graph
     item.lap_eigvec = lap_eigvec
     item.lap_eigval = lap_eigval
+    item.masked_tokens = token_mask
+
     return item

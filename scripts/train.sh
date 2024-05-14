@@ -8,17 +8,27 @@ MODEL_ARCH=$3
 CKPTS_PATH=$4
 BATCH_SIZE=$5
 NUM_CLASSES=$6
+PROCESSED_DIR=$7
+
+NUM_DATA_WORKERS=$((SLURM_CPUS_PER_GPU * SLURM_GPUS))
 
 fairseq-train \
+--dataset-name "$DATASET_NAME" \
 --dataset-root "$DATASET_ROOT" \
+--processed-dir "$PROCESSED_DIR" \
 --user-dir ../graph_coder \
+--max-tokens 4096 \
+--num-data-workers $NUM_DATA_WORKERS \
 --num-workers 0 \
 --ddp-backend=pytorch_ddp \
 --distributed-port 1369 \
---dataset-name $DATASET_NAME \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion cross_entropy_loss \
+--counter-path "$DATASET_ROOT"/"$PROCESSED_DIR"/counter.pkl.gz \
+--index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/indexes.pkl.gz \
+--index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/valid/indexes.pkl.gz \
+--index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/test/indexes.pkl.gz \
 --arch "$MODEL_ARCH" \
 --performer \
 --performer-feature-redraw-interval 100 \
@@ -33,7 +43,6 @@ fairseq-train \
 --data-buffer-size 20 \
 --save-dir ./ckpts/"$CKPTS_PATH" \
 --tensorboard-logdir ./tb/"$CKPTS_PATH" \
---weights-path "$DATASET_ROOT"/processed-data/train/weights.pkl.gz \
 --no-epoch-checkpoints \
 --validate-interval-updates 1000 \
 --nval 100 \

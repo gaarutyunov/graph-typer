@@ -81,6 +81,7 @@ def collator(
         lap_eigvec,
         lap_eigval,
         ys,
+        masked_tokens
     ) = zip(*[
         (
             item.idx,
@@ -92,6 +93,7 @@ def collator(
             item.lap_eigvec,
             item.lap_eigval,
             item.y,
+            item.masked_tokens
         )
         for item in items
     ])
@@ -99,8 +101,9 @@ def collator(
     node_num = [i.size(0) for i in node_data]
     edge_num = [i.size(0) for i in edge_data]
     max_n = max(node_num)
+    seq_len = max([n + e for n, e in zip(node_num, edge_num)])
 
-    y = torch.cat(ys)  # [B,]
+    y = torch.cat([F.pad(i[None, ...], (0, seq_len - i.size(0)), value=-100) for i in ys])
     edge_index = torch.cat(edge_index, dim=1)  # [2, sum(edge_num)]
     edge_data = torch.cat(edge_data) + 1  # [sum(edge_num), De], +1 for nn.Embedding with pad_index=0
     node_data = torch.cat(node_data) + 1  # [sum(node_num), Dn], +1 for nn.Embedding with pad_index=0
@@ -110,8 +113,9 @@ def collator(
     # [sum(node_num), Dl] = [sum(node_num), max_n]
     lap_eigvec = torch.cat([F.pad(i, (0, max_n - i.size(1)), value=float('0')) for i in lap_eigvec])
     lap_eigval = torch.cat([F.pad(i, (0, max_n - i.size(1)), value=float('0')) for i in lap_eigval])
+    masked_tokens = torch.cat([F.pad(i[None, ...], (0, seq_len - i.size(0)), value=False) for i in masked_tokens])
 
-    result = dict(
+    return dict(
         idx=torch.LongTensor(idxs),
         edge_index=edge_index,
         edge_data=edge_data,
@@ -123,6 +127,5 @@ def collator(
         y=y,
         node_num=node_num,
         edge_num=edge_num,
-        )
-
-    return result
+        masked_tokens=masked_tokens,
+    )

@@ -8,7 +8,8 @@ MODEL_ARCH=$3
 CKPTS_PATH=$4
 TOP_N=$5
 NUM_CLASSES=$6
-OUTPUT_PREDICTIONS=$7
+PROCESSED_DIR=$7
+OUTPUT_PREDICTIONS=$8
 
 if [ -n "$OUTPUT_PREDICTIONS" ]; then
   ARG="--output-predictions"
@@ -22,14 +23,19 @@ $ARG \
 --split test \
 --metric auc \
 --top-n "$TOP_N" \
+--dataset-name "$DATASET_NAME" \
 --dataset-root "$DATASET_ROOT" \
+--processed-dir "$PROCESSED_DIR" \
 --user-dir graph_coder \
 --num-workers 0 \
 --ddp-backend=legacy_ddp \
---dataset-name "$DATASET_NAME" \
 --task node_classification \
 --user-data-dir graph_coder/data \
 --criterion cross_entropy_loss \
+--counter-path "$DATASET_ROOT"/"$PROCESSED_DIR"/counter.pkl.gz \
+--index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/indexes.pkl.gz \
+--index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/valid/indexes.pkl.gz \
+--index-path "$DATASET_ROOT"/"$PROCESSED_DIR"/test/indexes.pkl.gz \
 --arch "$MODEL_ARCH" \
 --performer \
 --performer-feature-redraw-interval 100 \
@@ -47,5 +53,4 @@ $ARG \
 --output-path ./scripts/ckpts/"$CKPTS_PATH"/result_top_"$TOP_N".json \
 --metadata-path "$DATASET_ROOT"/tensorised-data/train/metadata.pkl.gz \
 --type-lattice-path "$DATASET_ROOT"/graph-dataset/_type_lattice.json.gz \
---alias-metadata-path "$DATASET_ROOT"/typingRules.json \
---weights-path "$DATASET_ROOT"/processed-data/train/weights.pkl.gz
+--alias-metadata-path "$DATASET_ROOT"/typingRules.json

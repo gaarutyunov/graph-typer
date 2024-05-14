@@ -5,26 +5,28 @@
 #SBATCH --time=3-0:00               # Максимальное время выполнения
 #SBATCH --ntasks=1                   # Количество MPI процессов
 #SBATCH --nodes=1                    # Требуемое кол-во узлов
-#SBATCH --cpus-per-task=1            # Требуемое кол-во CPU
+#SBATCH --cpus-per-task=20            # Требуемое кол-во CPU
 
 DATASET_NAME=${1:-pldi2020}
 DATASET_ROOT=${2:-~/data}
 SPLIT=${3:-train}
-MAX_NODES=${4:-512}
-MAX_EDGES=${5:-2048}
-NUM_CLASSES=${6:-1000}
+MAX_TOKENS=${4:-4096}
+NUM_CLASSES=${5:-1000}
+PROCESSED_DIR=${6:-"processed-dir-$MAX_TOKENS"}
 
 echo "Processing dataset $DATASET_NAME"
 echo "Root: $DATASET_ROOT"
+echo "Processed dir: $PROCESSED_DIR"
 echo "Split: $SPLIT"
-echo "Max nodes: $MAX_NODES"
-echo "Max edges: $MAX_EDGES"
+echo "Max tokens: $MAX_TOKENS"
 echo "Num classes: $NUM_CLASSES"
+echo "Num workers: $SLURM_CPUS_PER_TASK"
 
 PYTHONPATH=. python -m graph_coder.data \
 --dataset-name "$DATASET_NAME" \
 --dataset-root "$DATASET_ROOT" \
+--processed-dir "$PROCESSED_DIR" \
 --split "$SPLIT" \
---max-nodes "$MAX_NODES" \
---max-edges "$MAX_EDGES" \
---num-classes "$NUM_CLASSES"
+--max-tokens "$MAX_TOKENS" \
+--num-classes "$NUM_CLASSES" \
+--num-data-workers "$SLURM_CPUS_PER_TASK"

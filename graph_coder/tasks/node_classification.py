@@ -4,14 +4,16 @@ Based on Graphormer codebase https://github.com/microsoft/Graphormer
 
 import logging
 from dataclasses import dataclass, field
+from typing import Dict
 
 import numpy as np
-from fairseq.data import NestedDictionaryDataset
+from fairseq.data import NestedDictionaryDataset, EpochBatchIterator
+from fairseq.data.iterators import StreamingEpochBatchIterator
 from fairseq.tasks import register_task
 
 from graph_coder.data.masked_dataset import MaskedDataset
 from tokengt.data import DATASET_REGISTRY
-from tokengt.data.dataset import BatchedDataDataset, TargetDataset, EpochShuffleDataset
+from tokengt.data.dataset import EpochShuffleDataset
 from tokengt.tasks.graph_prediction import GraphPredictionConfig, GraphPredictionTask
 
 logger = logging.getLogger(__name__)
@@ -24,19 +26,24 @@ class NodeClassificationConfig(GraphPredictionConfig):
         metadata={"help": "Dataset root folder"},
     )
 
-    weights_path: str = field(
-        default="~/data/processed-data/train/weights.pkl.gz",
-        metadata={"help": "Weights path relative to the dataset root"},
+    processed_dir: str = field(
+        default="processed-dir",
+        metadata={"help": "Dataset processed folder"},
     )
 
-    max_nodes: int = field(
-        default=10000,
-        metadata={"help": "max nodes per graph"},
+    num_data_workers: int = field(
+        default=4,
+        metadata={"help": "number of data workers"},
     )
 
-    max_edges: int = field(
-        default=20000,
-        metadata={"help": "max edges per graph"},
+    mask_ratio: float = field(
+        default=0.5,
+        metadata={"help": "node masking ratio"},
+    )
+
+    max_tokens: int = field(
+        default=4096,
+        metadata={"help": "number tokens per graph"},
     )
 
     num_atoms: int = field(
@@ -54,6 +61,7 @@ class NodeClassificationConfig(GraphPredictionConfig):
 class NodeClassificationTask(GraphPredictionTask):
     def __init__(self, cfg):
         super(GraphPredictionTask, self).__init__(cfg)
+        self.sizes: Dict[str, int] = {}
         if cfg.user_data_dir != "":
             self._import_user_defined_datasets(cfg.user_data_dir)
             if cfg.dataset_name in DATASET_REGISTRY:
@@ -72,39 +80,29 @@ class NodeClassificationTask(GraphPredictionTask):
 
         assert split in ["train", "valid", "test"]
 
-        batched_data = self.dataset_initializer(self.cfg, split)
-
-        batched_data = BatchedDataDataset(
-            batched_data,
-            max_node=self.max_nodes(),
-            max_edge=self.max_edges(),
-            multi_hop_max_dist=self.cfg.multi_hop_max_dist,
-            spatial_pos_max=self.cfg.spatial_pos_max
-        )
-        masked_tokens = MaskedDataset(
-            batched_data,
-        )
-
-        data_sizes = np.array([self.max_nodes()] * len(batched_data))
-
-        target = TargetDataset(batched_data, max_node=batched_data.max_node)
-
-        dataset = NestedDictionaryDataset(
-            {
-                "net_input": {"batched_data": batched_data, "masked_tokens": masked_tokens},
-                "target": target,
-            },
-            sizes=data_sizes,
-        )
-
-        if split == "train" and self.cfg.train_epoch_shuffle:
-            dataset = EpochShuffleDataset(
-                dataset,
-                num_samples=len(dataset),
-                seed=self.cfg.seed
-            )
+        dataset = self.dataset_initializer(self.cfg, split)
 
         logger.info("Loaded {0} with #samples: {1}".format(split, len(dataset)))
 
         self.datasets[split] = dataset
+        self.sizes[split] = len(dataset)
+
         return self.datasets[split]
+
+    def dataset(self, split):
+        return self.datasets[split]
+
+    def get_batch_iterator(self, dataset, max_tokens=None, max_sentences=None, max_positions=None,
+                           ignore_invalid_inputs=False, required_batch_size_multiple=1, seed=1, num_shards=1,
+                           shard_id=0, num_workers=0, epoch=1, data_buffer_size=0, disable_iterator_cache=False,
+                           skip_remainder_batch=False, grouped_shuffling=False, update_epoch_batch_itr=False):
+        return StreamingEpochBatchIterator(
+            dataset=dataset,
+            max_sentences=max_sentences,
+            collate_fn=dataset.collater,
+            buffer_size=data_buffer_size,
+            num_workers=num_workers,
+            epoch=epoch,
+        )
+
+

@@ -1,21 +1,14 @@
-import torch
-from torch.nn import functional as F
-
 from tokengt.models import TokenGTModel
 from tokengt.models.tokengt import base_architecture
 
 
 class GraphCoderMaskedModel(TokenGTModel):
-    def get_normalized_probs(self, net_output, log_probs, sample=None):
-        return super().get_normalized_probs({"encoder_out": net_output}, log_probs, sample)
-
     def get_targets(self, sample, net_output):
-        tokens_num = [node_num + edge_num for node_num, edge_num in zip(sample["net_input"]["batched_data"]["node_num"], sample["net_input"]["batched_data"]["edge_num"])]
-        max_n = max(tokens_num)
+        targets = sample["y"]
 
-        targets = torch.cat([F.pad(target[None, ...], (0, max_n - target.size(0)), value=-100) for target in sample["target"]])
+        targets = targets.masked_fill(~sample["masked_tokens"], -100)
 
-        return targets[sample["net_input"]["masked_tokens"]]
+        return targets
 
     @staticmethod
     def add_args(parser):

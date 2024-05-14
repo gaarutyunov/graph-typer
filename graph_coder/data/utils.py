@@ -23,13 +23,21 @@ def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
     # add node type
     nx.set_node_attributes(g, {k: v for k, v in enumerate(sample["cg_node_label_token_ids"])}, "type")
 
+    supernodes = {}
+
     # add node label
     y = np.full((len(sample["cg_node_label_token_ids"]),), -100)
-    y[sample["target_node_idxs"]] = sample["variable_target_class"]
+    for i, target in enumerate(sample["variable_target_class"]):
+        if target == 0:
+            continue
+        idx = sample['target_node_idxs'][i]
+        y[idx] = target
+        supernodes[str(idx)] = sample["raw_data"]["supernodes"][str(idx)]
+
     nx.set_node_attributes(g, {k: v for k, v in enumerate(y)}, "label")
 
     # add supernodes
-    g.graph["supernodes"] = sample["raw_data"]["supernodes"]
+    g.graph["supernodes"] = supernodes
 
     # add filename
     g.graph["Provenance"] = sample.get("Provenance", "?")

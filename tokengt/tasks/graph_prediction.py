@@ -223,10 +223,6 @@ class GraphPredictionTask(FairseqTask):
     def build_model(self, cfg):
         from fairseq import models
 
-        with open_dict(cfg) if OmegaConf.is_config(cfg) else contextlib.ExitStack():
-            cfg.max_nodes = self.cfg.max_nodes
-            cfg.max_edges = self.cfg.max_edges
-
         model = models.build_model(cfg, self)
 
         return model

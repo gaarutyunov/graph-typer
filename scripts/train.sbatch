@@ -24,7 +24,7 @@
 #SBATCH --gpus-per-node=1
 #SBATCH --ntasks-per-node=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-gpu=1
+#SBATCH --cpus-per-gpu=5
 #SBATCH --time=3-0:0
 
 # Load modules
@@ -42,13 +42,15 @@ MODEL_ARCH=${3:-graph_coder_masked_base}
 MODEL_NAME=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 BATCH_SIZE=${5:-16}
 NUM_CLASSES=${6:-1000}
+PROCESSED_DIR=${7:-"processed-data-4096"}
 
 echo "Training..."
 echo "Model arch: $MODEL_ARCH"
 echo "Dataset name: $DATASET_NAME"
 echo "Dataset root: $DATASET_ROOT"
+echo "Processed dir: $PROCESSED_DIR"
 echo "Saving checkpoints to: ckpts/$MODEL_NAME"
 echo "Batch size: $BATCH_SIZE"
 echo "Num classes: $NUM_CLASSES"
 
-source ./train.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE" "$NUM_CLASSES"
+source ./train.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE" "$NUM_CLASSES" "$PROCESSED_DIR"
