@@ -13,20 +13,13 @@ def nx_to_sample(g: nx.Graph) -> Dict[str, Any]:
 
 def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
     # initiate graph
-    edges = []
-    for v, edges_ in enumerate(sample['cg_edges']):
-        for (a, b) in edges_:
-            edges.append((a, b, {"type": v}))
     g = nx.Graph()
-    g.add_edges_from(edges)
 
-    # add node type
-    nx.set_node_attributes(g, {k: v for k, v in enumerate(sample["cg_node_label_token_ids"])}, "type")
-
+    # add nodes
     supernodes = {}
 
-    # add node label
     y = np.full((len(sample["cg_node_label_token_ids"]),), -100)
+
     for i, target in enumerate(sample["variable_target_class"]):
         if target == 0:
             continue
@@ -36,7 +29,15 @@ def sample_to_nx(sample: Dict[str, Any]) -> nx.Graph:
         y[idx] = target
         supernodes[str(idx)] = sample["raw_data"]["supernodes"][str(idx)]
 
-    nx.set_node_attributes(g, {k: v for k, v in enumerate(y)}, "label")
+    for i, node_type in enumerate(sample["cg_node_label_token_ids"]):
+        g.add_node(i, type=node_type, label=y[i])
+
+    # add edges
+    edges = []
+    for v, edges_ in enumerate(sample['cg_edges']):
+        for (a, b) in edges_:
+            edges.append((a, b, {"type": v}))
+    g.add_edges_from(edges)
 
     # add supernodes
     g.graph["supernodes"] = supernodes

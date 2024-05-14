@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 import pathlib
 from typing import Union, List, Tuple, Optional, Literal, Dict, Sized, Iterable, Any
@@ -40,12 +41,14 @@ def pldi2020(cfg, split: Literal["train", "test", "valid"] = "train", **kwargs):
         processed_dir=cfg.processed_dir,
         mask_ratio=cfg.mask_ratio,
         **kwargs
-    ).process().load_meta()
+    ).process()
 
 
 class PLDI2020Dataset(FairseqIterableDataset, Sized):
     def __len__(self):
-        return self._len
+        sizes_mask = self.sizes <= self._max_tokens
+
+        return math.floor(sizes_mask.sum().item() / self._world_size)
 
     def __repr__(self):
         return self.__class__.__name__ + f"({len(self)})"
@@ -68,7 +71,6 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         self._split = split
         self._num_classes = num_classes
         self._processed_dir = processed_dir
-        self._len = 0
         self._data_mapping = {}
         self._sample_mapping = {}
         self._size = sizes.get(split, 1)
@@ -81,13 +83,6 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
         self._num_workers = num_workers
         self._rank = fairseq.distributed.utils.get_global_rank()
         self._world_size = fairseq.distributed.utils.get_global_world_size()
-        self.load_meta()
-
-    def load_meta(self) -> "PLDI2020Dataset":
-        sizes_mask = self.sizes <= self._max_tokens
-        self._len = sizes_mask.sum().item()
-
-        return self
 
     @property
     def raw_dir(self) -> str:

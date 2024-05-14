@@ -21,4 +21,4 @@ def pldi2020_small(cfg, split: Literal["train", "test", "valid"] = "train", **kw
         processed_dir=cfg.processed_dir,
         mask_ratio=cfg.mask_ratio,
         **kwargs
-    ).process().load_meta()
+    ).process()
