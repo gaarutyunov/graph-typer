@@ -85,7 +85,7 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
 
     def load_meta(self) -> "PLDI2020Dataset":
         sizes_mask = self.sizes <= self._max_tokens
-        self._len = sizes_mask.sum()
+        self._len = sizes_mask.sum().item()
 
         return self
 
