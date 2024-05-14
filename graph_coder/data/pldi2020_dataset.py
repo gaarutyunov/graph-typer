@@ -193,11 +193,13 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
             data_paths = [data_paths[i] for i in idxs]
 
             for chunk in read_data_chunks(data_paths, num_workers=self._num_workers, max_queue_size=25):
-                for i, data in enumerate(chunk):
-                    if (i + shift) % mod != 0:
-                        continue
+                i = 0
+                for data in chunk:
                     if filter_data(data, self._max_tokens):
                         continue
+                    if (i + shift) % mod != 0:
+                        continue
+                    i += 1
 
                     yield preprocess_item(data, self._mask_ratio)
 
@@ -211,11 +213,13 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
                     read_data_chunks(data_paths, num_workers=self._num_workers, max_queue_size=25),
                     read_data_chunks(sample_paths, num_workers=self._num_workers, max_queue_size=25)
             ):
+                j = 0
                 for i, data in enumerate(data_chunk):
-                    if (i + shift) % mod != 0:
-                        continue
                     if filter_data(data, self._max_tokens):
                         continue
+                    if (j + shift) % mod != 0:
+                        continue
+                    j += 1
 
                     yield preprocess_item(data, self._mask_ratio), sample_chunk[i]
 
