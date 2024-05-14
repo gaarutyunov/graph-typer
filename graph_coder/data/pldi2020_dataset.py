@@ -48,7 +48,12 @@ class PLDI2020Dataset(FairseqIterableDataset, Sized):
     def __len__(self):
         sizes_mask = self.sizes <= self._max_tokens
 
-        return math.floor(sizes_mask.sum().item() / self._world_size)
+        length = sizes_mask.sum().item() // self._world_size
+
+        if length // 2 // 2 % 2 != 0:
+            length -= 2
+
+        return length
 
     def __repr__(self):
         return self.__class__.__name__ + f"({len(self)})"
