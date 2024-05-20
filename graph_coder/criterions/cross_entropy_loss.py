@@ -4,6 +4,7 @@
 # LICENSE file in the root directory of this source tree.
 import math
 import pathlib
+from typing import Optional
 
 from dpu_utils.utils import RichPath
 from fairseq import utils
@@ -11,6 +12,7 @@ from fairseq.criterions import register_criterion, FairseqCriterion
 from fairseq.logging import metrics
 
 import torch.nn.functional as F
+from torch import Tensor
 
 
 @register_criterion("cross_entropy_loss")
@@ -18,18 +20,20 @@ class CrossEntropyLoss(FairseqCriterion):
     def __init__(self, task, counter_path, sizes_path):
         super().__init__(task)
         total = 0
+        weight = None
+
         if sizes_path is not None:
             sizes = RichPath.create(sizes_path).read_by_file_suffix()
 
             total = (sizes <= task.cfg.max_tokens).sum().item()
+
         if counter_path is not None:
             counter = RichPath.create(counter_path).read_by_file_suffix()
-            if total == 0:
-                self.weights = None
-            else:
-                self.weights = total / task.cfg.num_classes * counter
-        else:
-            self.weights = None
+            if total != 0:
+                weight = total / (task.cfg.num_classes * counter)
+
+        self.register_buffer("weight", weight)
+        self.weight: Optional[Tensor]
 
     @classmethod
     def add_args(cls, parser):

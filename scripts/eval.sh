@@ -34,7 +34,7 @@ $ARG \
 --ddp-backend=legacy_ddp \
 --task node_classification \
 --user-data-dir graph_coder/data \
---criterion cross_entropy_loss \
+--criterion focal_loss \
 --counter-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/counter.pkl.gz \
 --sizes-path "$DATASET_ROOT"/"$PROCESSED_DIR"/train/sizes.pkl.gz \
 --arch "$MODEL_ARCH" \
