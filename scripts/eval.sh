@@ -8,7 +8,8 @@ MODEL_ARCH=$3
 CKPTS_PATH=$4
 TOP_N=$5
 NUM_CLASSES=$6
-PROCESSED_DIR=$7
+PROCESSED_DIR="processed-data-4096"
+MAX_TOKENS=$7
 OUTPUT_PREDICTIONS=$8
 
 NUM_DATA_WORKERS=$((SLURM_CPUS_PER_GPU * SLURM_GPUS))
@@ -27,7 +28,7 @@ $ARG \
 --dataset-name "$DATASET_NAME" \
 --dataset-root "$DATASET_ROOT" \
 --processed-dir "$PROCESSED_DIR" \
---max-tokens 4096 \
+--max-tokens $MAX_TOKENS \
 --num-data-workers "$NUM_DATA_WORKERS" \
 --user-dir graph_coder \
 --num-workers 0 \
