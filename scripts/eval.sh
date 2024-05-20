@@ -28,7 +28,7 @@ $ARG \
 --dataset-name "$DATASET_NAME" \
 --dataset-root "$DATASET_ROOT" \
 --processed-dir "$PROCESSED_DIR" \
---max-tokens $MAX_TOKENS \
+--max-tokens "$MAX_TOKENS" \
 --num-data-workers "$NUM_DATA_WORKERS" \
 --user-dir graph_coder \
 --num-workers 0 \

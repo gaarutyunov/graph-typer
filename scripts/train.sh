@@ -18,7 +18,7 @@ fairseq-train \
 --dataset-root "$DATASET_ROOT" \
 --processed-dir "$PROCESSED_DIR" \
 --user-dir ../graph_coder \
---max-tokens 4096 \
+--max-tokens "$MAX_TOKENS" \
 --num-data-workers $NUM_DATA_WORKERS \
 --num-workers 0 \
 --ddp-backend=pytorch_ddp \
