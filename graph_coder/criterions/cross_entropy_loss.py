@@ -20,7 +20,7 @@ class CrossEntropyLoss(FairseqCriterion):
     def __init__(self, task, counter_path, sizes_path):
         super().__init__(task)
         total = 0
-        weight = None
+        self.weight: Optional[Tensor] = None
 
         if sizes_path is not None:
             sizes = RichPath.create(sizes_path).read_by_file_suffix()
@@ -30,10 +30,7 @@ class CrossEntropyLoss(FairseqCriterion):
         if counter_path is not None:
             counter = RichPath.create(counter_path).read_by_file_suffix()
             if total != 0:
-                weight = total / (task.cfg.num_classes * counter)
-
-        self.register_buffer("weight", weight)
-        self.weight: Optional[Tensor]
+                self.weight = total / (task.cfg.num_classes * counter)
 
     @classmethod
     def add_args(cls, parser):

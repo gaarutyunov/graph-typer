@@ -142,7 +142,7 @@ class FocalLossCriterion(FairseqCriterion):
     def __init__(self, task, counter_path, sizes_path, gamma, ignore_index):
         super().__init__(task)
         total = 0
-        weight = None
+        self.weight: Optional[Tensor] = None
 
         if sizes_path is not None:
             sizes = RichPath.create(sizes_path).read_by_file_suffix()
@@ -152,10 +152,8 @@ class FocalLossCriterion(FairseqCriterion):
         if counter_path is not None:
             counter = RichPath.create(counter_path).read_by_file_suffix()
             if total != 0:
-                weight = total / (task.cfg.num_classes * counter)
+                self.weight = total / (task.cfg.num_classes * counter)
 
-        self.register_buffer("weight", weight)
-        self.weight: Optional[Tensor]
         self.gamma = gamma
         self.ignore_index = ignore_index
 
