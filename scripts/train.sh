@@ -36,8 +36,8 @@ fairseq-train \
 --num-classes "$NUM_CLASSES" \
 --attention-dropout 0.0 --act-dropout 0.1 --dropout 0.0 \
 --optimizer adam --adam-eps 1e-8 --clip-norm 5.0 --weight-decay 0.1 \
---lr-scheduler polynomial_decay --power 1 --warmup-updates 3000 --total-num-update 1000000 \
---lr 2e-4 --end-learning-rate 1e-9 \
+--lr-scheduler polynomial_decay --power 1 --warmup-updates 1000 --total-num-update 1000000 \
+--lr 1e-2 --end-learning-rate 1e-5 \
 --batch-size "$BATCH_SIZE" \
 --data-buffer-size 20 \
 --save-dir ./ckpts/"$CKPTS_PATH" \
