@@ -36,7 +36,7 @@ fairseq-train \
 --prenorm \
 --num-classes "$NUM_CLASSES" \
 --attention-dropout 0.0 --act-dropout 0.1 --dropout 0.0 \
---optimizer sgd --momentum 0.9 --dampening 0.3 --weight-decay 0.001 --nesterov \
+--optimizer sgd --momentum 0.9 --weight-decay 0.001 \
 --clip-norm 25.0 \
 --lr-scheduler polynomial_decay --power 0.5 --warmup-updates 3000 --total-num-update 50000 \
 --lr 0.1 --end-learning-rate 1e-7 \
