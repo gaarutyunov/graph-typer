@@ -9,6 +9,7 @@ CKPTS_PATH=$4
 BATCH_SIZE=$5
 NUM_CLASSES=$6
 MAX_TOKENS=$7
+PORT=$8
 PROCESSED_DIR="processed-data-4096"
 
 NUM_DATA_WORKERS=$((SLURM_CPUS_PER_GPU * SLURM_GPUS))
@@ -22,7 +23,7 @@ fairseq-train \
 --num-data-workers $NUM_DATA_WORKERS \
 --num-workers 0 \
 --ddp-backend=pytorch_ddp \
---distributed-port 1369 \
+--distributed-port $PORT \
 --task node_classification \
 --user-data-dir ../graph_coder/data \
 --criterion focal_loss \

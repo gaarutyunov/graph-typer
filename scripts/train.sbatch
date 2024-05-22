@@ -43,8 +43,10 @@ MODEL_NAME=${4:-${DATASET_NAME}-${MODEL_ARCH}}
 BATCH_SIZE=${5:-16}
 NUM_CLASSES=${6:-1000}
 MAX_TOKENS=${7:-8192}
+PORT=${8:-1369}
 
 echo "Training..."
+echo "Port: $PORT"
 echo "Model arch: $MODEL_ARCH"
 echo "Dataset name: $DATASET_NAME"
 echo "Dataset root: $DATASET_ROOT"
@@ -53,4 +55,4 @@ echo "Saving checkpoints to: ckpts/$MODEL_NAME"
 echo "Batch size: $BATCH_SIZE"
 echo "Num classes: $NUM_CLASSES"
 
-source ./train.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE" "$NUM_CLASSES" "$MAX_TOKENS"
+source ./train.sh "$DATASET_NAME" "$DATASET_ROOT" "$MODEL_ARCH" "$MODEL_NAME" "$BATCH_SIZE" "$NUM_CLASSES" "$MAX_TOKENS" "$PORT"
