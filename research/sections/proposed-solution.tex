@@ -11,6 +11,15 @@ Only 158 types have over 100 annotations, while the majority of types are used f
 This distribution underscores the importance of accurately predicting annotations, especially for less common types.
 The long-tail of types consists of user-defined and generic types with various type arguments.
 
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.75\columnwidth]{figures/samplegraph.pdf}
+    \caption{Sample graph for foo=get\_foo(i, i+1) showing different node and edge types implemented by Allamanis et al.~\cite{allamanis2020typilus}.}
+    \label{fig:samplegraph}
+\end{figure}
+
+The source files are processed to generate graphs that contain AST, DFG, as well as lexical and syntactical information.
+An example of such a graph is shown on Figure~\ref{fig:samplegraph}.
 In addition to extracting graphs from source code AST, we split them by setting a maximum node and edges number in one graph.
 For this, we prune the graphs around nodes that have annotations that are later used as targets during training and testing.
 Finally, we split the data into train-validation-test sets with proportions of 70-10-20, respectively.
@@ -28,17 +37,17 @@ The embeddings in the model are composed of orthonormal node identifiers, namely
 eigendecomposition of graph Laplacian matrix.
 In addition, type identifiers are used to encode types of tokens (nodes or edges).
 
-\begin{figure*}
-    \resizebox{\textwidth}{!}{\input{figures/model.tikz}}
-    \caption{GraphTyper Architecture. The source code is first transformed into AST graph, then type annotations are randomely masked. The graph is enriched by token type identifiers (node or edge) and orthonormal node identifiers obtained from eigendecomposition of Laplacian matrix. The resulting graph is fed through a Transformer Encoder to obtain type annotations for masked nodes.}
-    \label{fig:model}
-\end{figure*}
-
 In our model, we use node and edge types extracted from code as token features.
 Node ground truth annotations are added to the features and randomly masked during training.
 The overall architecture of the model is displayed at Figure~\ref{fig:model}.
 
 \subsubsection{Masked Transformer Encoder Model}
+
+\begin{figure*}[t]
+    \resizebox{\textwidth}{!}{\input{figures/model.tikz}}
+    \caption{GraphTyper Architecture. The source code is first transformed into AST graph, then type annotations are randomely masked. The graph is enriched by token type identifiers (node or edge) and orthonormal node identifiers obtained from eigendecomposition of Laplacian matrix. The resulting graph is fed through a Transformer Encoder to obtain type annotations for masked nodes.}
+    \label{fig:model}
+\end{figure*}
 
 Predicting type annotations in graph domain is a node classification task.
 However, since we are using a Pure Transformer with graphs represented as a sequence of tokens, the task can be reduced to token classification.

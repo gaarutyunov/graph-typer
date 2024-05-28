@@ -245,3 +245,4 @@ logs
 !out/paper.pdf
 scripts/tb
 scripts/predictions
+!out/presentation.pdf

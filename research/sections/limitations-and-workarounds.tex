@@ -4,9 +4,18 @@ Since we define our task as node (token) classification, we feed our transformer
 Therefore, our type vocabulary is limited.
 Because of the computational resources constraints, we limit it to one thousand types.
 
+\begin{figure*}[t]
+    \centering
+    \includegraphics[width=0.75\textwidth]{figures/dsl.pdf}
+    \caption{Solution to the problem using Deep Similarity Learning~\parencite{allamanis2020typilus}.}
+    \label{fig:dsl}
+\end{figure*}
+
 This issue is addressable by formulating the task as Deep Similarity Learning Problem~\cite{chopra2005learning,liao2018tripletbased}.
 In this way, the model will output vector representations of types that can be grouped into cluster of similar types.
 After that, an algorithm such as KNN~\cite{knn} is used to transform vector representation into a probability of each type~\cite{allamanis2020typilus,mir_type4py_2021}.
+Illustration for such an approach is depicted on Figure~\ref{fig:dsl}.
+The approach follows the methodology described in Typilus paper~\cite{allamanis2020typilus}.
 
 \subsection{Absence of Natural Language information}\label{subsec:absence-of-natural-language-information}
 

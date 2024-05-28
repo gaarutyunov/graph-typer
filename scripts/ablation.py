@@ -55,3 +55,35 @@ with open("../research/tables/ablation.tex", mode="w") as f:
         hrules=True,
         clines="skip-last;data",
     ), file=f)
+
+#%%
+columns_landscape = [
+    [f"Top-{f}" for f in [1, 3, 5]],
+    ["EM", "UTPT"]
+]
+columns_landscape_idx = pd.MultiIndex.from_product(columns_landscape, names=["Top-n", "Metric"])
+idx_landscape = [
+    "Plane Transformer",
+    "+ Node \& Type Identifiers",
+    "+ Type Annotations",
+    "+ Decoder (Autoencoder)",
+    "or Longer Context",
+    "or More Parameters"
+]
+
+
+def flatten(arr):
+    res = []
+    for a in arr:
+        res.extend(a)
+    return res
+
+
+df_landscape = pd.DataFrame([flatten([data[(i * 6) + j] for i in range(3)]) for j in range(6)], columns=columns_landscape_idx, index=idx_landscape)
+#%%
+with open("../research/tables/ablation-presentation.tex", mode="w") as f:
+    print((df_landscape * 100).style.highlight_max(color=None,props="font-weight:bold;").format(precision=2).to_latex(
+        convert_css=True,
+        hrules=True,
+        clines="skip-last;data",
+    ), file=f)

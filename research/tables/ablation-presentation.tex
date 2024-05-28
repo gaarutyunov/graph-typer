@@ -1,0 +1,14 @@
+\begin{tabular}{lrrrrrr}
+\toprule
+Top-n & \multicolumn{2}{r}{Top-1} & \multicolumn{2}{r}{Top-3} & \multicolumn{2}{r}{Top-5} \\
+Metric & EM & UTPT & EM & UTPT & EM & UTPT \\
+\midrule
+Plane Transformer & 10.15 & 19.46 & 15.06 & 29.40 & 16.81 & 37.91 \\
++ Node \& Type Identifiers & 30.88 & 36.55 & 40.33 & 50.37 & 42.82 & 56.01 \\
++ Type Annotations & 33.36 & \bfseries 42.28 & 41.71 & 52.90 & 43.62 & 57.00 \\
++ Decoder (Autoencoder) & 15.90 & 16.65 & 28.26 & 32.81 & 44.17 & 56.33 \\
+or Longer Context & \bfseries 38.49 & 39.80 & \bfseries 53.14 & \bfseries 57.41 & \bfseries 58.80 & \bfseries 67.38 \\
+or More Parameters & 29.39 & 31.82 & 44.85 & 49.72 & 49.74 & 56.14 \\
+\bottomrule
+\end{tabular}
+

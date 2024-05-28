@@ -1,0 +1,201 @@
+%!TEX TS-program = xelatex
+
+\documentclass[aspectratio=169]{beamer}
+
+\newbool{russian}
+%\booltrue{russian} % Uncomment if in Russian
+\usepackage{graphicx}
+\usepackage[dvipsnames]{xcolor}
+\usepackage{tikz}
+\usepackage{pgf}
+\usetikzlibrary{positioning,fit,backgrounds,scopes,decorations.pathreplacing,shapes.geometric}
+\usepackage{booktabs, multirow, tabularx}
+\usepackage{mathspec}
+
+\renewcommand\arraystretch{1.}
+
+%%% Информация об авторе и выступлении
+\title[GraphTyper]{GraphTyper: Neural Types Inference from Code Represented as Graph}
+\author[authors]{
+    \texorpdfstring{
+        \begin{columns}
+            \column{0.5\textwidth}
+            \centering
+            German Arutyunov \\ \smallskip \scriptsize \url{gaarutyunov@edu.hse.ru}\\\url{https://github.com/gaarutyunov/}
+            \column{0.5\textwidth}
+            \centering
+            Sergey Avdoshin \\ \smallskip \scriptsize \url{savdoshin@hse.ru}\\\url{https://www.hse.ru/staff/avdoshin/}
+        \end{columns}
+    }{German Arutyunov, Sergey Avdoshin}
+}
+\institute{HSE University, 20, Myasnitskaya st., Moscow, Russia}
+\date{\today}
+
+
+\begin{document}
+
+    \frame[plain]{\titlepage}
+
+    \begin{frame}
+        \frametitle{Introduction}
+        \framesubtitle{Task definition, practical relevance and results}
+        \begin{itemize}
+            \item Task: Predicting type annotations in dynamically-typed languages (Python)
+            \item Relevance:
+            \begin{itemize}
+                \item Errors due to wrong or absent type annotations
+                \item Model flexibility for future work
+            \end{itemize}
+            \item Results:
+            \begin{itemize}
+                \item Masked transformer model that can be directly used on code represented as graph
+            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Introduction}
+        \framesubtitle{Structure}
+        \begin{enumerate}
+            \item Previous Work
+            \item Proposed Solution
+            \item Experiment Results and Ablation Analysis
+            \item Final Model Quantitative Results
+            \item Limitations and Workarounds
+        \end{enumerate}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Previous Work}
+        \framesubtitle{Main works}
+        \begin{table}
+            \centering
+            \label{tab:main-works}
+            \input{tables/main-works}
+        \end{table}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Previous Work}
+        \framesubtitle{Works for result comparison}
+        \begin{table}
+            \centering
+            \label{tab:works-for-comparison}
+            \input{tables/works-for-comparison}
+        \end{table}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Proposed Solution}
+        \framesubtitle{Dataset}
+        \begin{columns}
+            \column{0.5\textwidth}
+            \begin{itemize}
+                \item 118,440 files with 5,997,459 symbols
+                \item Top 10 types cover half of the dataset
+                \item Only 158 types have over 100 annotations
+                \item The majority are used fewer than 100 times each, forming 32\% of the dataset
+            \end{itemize}
+            \column{0.5\textwidth}
+            \begin{figure}
+                \includegraphics[width=\columnwidth]{figures/samplegraph.pdf}
+                \caption{Sample graph for foo=get\_foo(i, i+1) showing different node categories and edge labels.}
+                \label{fig:samplegraph}
+            \end{figure}
+        \end{columns}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Proposed Solution}
+        \framesubtitle{Model architecture}
+        \begin{figure}
+            \resizebox{\textwidth}{!}{\input{figures/model.tikz}}
+            \label{fig:model}
+        \end{figure}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Proposed Solution}
+        \framesubtitle{Metrics}
+
+        To test the model, we use two metrics from the Typilus paper:
+
+        \begin{itemize}
+            \item Exact Match: Predicted and ground truth types match exactly.
+            \item Match up to Parametric Type: Exact match when ignoring all type parameters.
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Experiment Results and Ablation Analysis}
+        \framesubtitle{Hypothesis}
+        \begin{enumerate}
+            \item Validating the necessity of node and type identifiers that encode graph structure
+            \item Using the model without node type annotations
+            \item Increasing the number of parameters
+            \item Testing different context length
+            \item Testing different Transformer architectures
+        \end{enumerate}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Experiment Results and Ablation Analysis}
+        \framesubtitle{Results Discussion}
+        \begin{table}
+            \centering
+            \label{tab:ablation}
+            \input{tables/ablation-presentation}
+        \end{table}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Final Model Quantitative Results}
+        \framesubtitle{Comparison with previous work}
+        \begin{table}
+            \centering
+            \label{tab:results}
+            \input{tables/result-presentation}
+        \end{table}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Limitations and Workarounds}
+        \framesubtitle{Considerations for future work}
+        \begin{itemize}
+            \item Type Vocabulary Size
+            \item Absence of Natural Language Information
+        \end{itemize}
+        \begin{figure}
+            \centering
+            \includegraphics[width=\textwidth]{figures/dsl.pdf}
+            \caption{Solution to the problem using Deep Similarity Learning.}
+            \label{fig:dsl}
+        \end{figure}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Conclusion}
+        \begin{itemize}
+            \item Main accomplishment:
+            \begin{itemize}
+                \item A universal Transformer model that can be applied on code represented as graph
+            \end{itemize}
+            \item Future Work:
+            \begin{itemize}
+                \item Universal code graph representation
+                \item Detecting duplicates
+                \item Code and docstring generation
+                \item Vulnerability and error detection
+                \item Refactoring
+            \end{itemize}
+        \end{itemize}
+    \end{frame}
+
+    \begin{frame}
+        \frametitle{Acknolegements}
+        This research was supported in part through computational resources of HPC facilities at HSE University~\footnote{
+            P. S. Kostenetskiy, R. A. Chulkevich, and V. I. Kozyrev. “HPC Resources of the Higher School of Economics.” In: Journal of Physics: Conference Series 1740.1 (Jan. 2021)
+        }
+    \end{frame}
+
+\end{document}

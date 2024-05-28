@@ -11,9 +11,9 @@ idx_itr = [
     [
         "GraphTyper",
         "TypeBERT",
+        "TypeWriter",
         "Typilus",
         "Type4Py",
-        "TypeWriter",
         "TypeGen"
     ],
 ]
@@ -69,21 +69,53 @@ data.append([
 #%%
 df = pd.DataFrame([data[j][i] for i in range(3) for j in range(len(data))], columns=columns, index=idx)
 #%%
-def highlight_min(data):
+def highlight_max(data):
     attr = "font-weight:bold;"
 
     if data.ndim == 1:  # Series from .apply(axis=0) or axis=1
-        is_min = data == data.min()
-        return [attr if v else '' for v in is_min]
+        is_max = data == data.max()
+        return [attr if v else '' for v in is_max]
 
-    is_min = data.groupby(level=0).transform('min') == data
+    is_max = data.groupby(level=0).transform('max') == data
 
-    return pd.DataFrame(np.where(is_min, attr, ''),
+    return pd.DataFrame(np.where(is_max, attr, ''),
                         index=data.index, columns=data.columns)
 
 
 with open("../research/tables/result.tex", mode="w") as f:
-    print((df * 100).style.apply(highlight_min, axis=None).format(precision=2).to_latex(
+    print((df * 100).style.apply(highlight_max, axis=None).format(precision=2).to_latex(
+        convert_css=True,
+        hrules=True,
+        clines="skip-last;data",
+    ), file=f)
+
+#%%
+columns_landscape = [
+    [f"Top-{f}" for f in [1, 3, 5]],
+    ["EM", "UTPT"]
+]
+columns_landscape_idx = pd.MultiIndex.from_product(columns_landscape, names=["Top-n", "Metric"])
+idx_landscape = [
+    "GraphTyper",
+    "TypeBERT",
+    "TypeWriter",
+    "Typilus",
+    "Type4Py",
+    "TypeGen"
+]
+
+
+def flatten(arr):
+    res = []
+    for a in arr:
+        res.extend(a)
+    return res
+
+
+df_landscape = pd.DataFrame([flatten(model) for model in data], columns=columns_landscape_idx, index=idx_landscape)
+#%%
+with open("../research/tables/result-presentation.tex", mode="w") as f:
+    print((df_landscape * 100).style.highlight_max(color=None,props="font-weight:bold;").format(precision=2).to_latex(
         convert_css=True,
         hrules=True,
         clines="skip-last;data",
